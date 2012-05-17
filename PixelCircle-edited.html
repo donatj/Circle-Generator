@@ -1,58 +1,98 @@
 <!doctype html>
 <html lang="en">
 <head>
-
-<script>
-function process(e) {
-	if(typeof e.keyIdentifier != "undefined") {
-		
-	}
-	var bx = 1;
-	var by = 1;
-	
-	var r = parseFloat(document.getElementById('diameter').value, 10) / 2;
-
-	var maxblocks_x, maxblocks_y;
-	var img_scale = 10;
-	var text = '';
-
-	maxblocks_x = Math.ceil(r / bx) * 2;
-	maxblocks_y = Math.ceil(r / by) * 2;
-
-
-	text += '<table>\n';
-	for (var y = -maxblocks_y / 2; y <= maxblocks_y / 2; y++) {
-		text += '<tr>';
-		for (var x =- maxblocks_x / 2; x <= maxblocks_x / 2; x++) {
-			var distance = Math.sqrt(Math.pow(y * by, 2) + Math.pow(x * bx, 2));
-			var bgcolor = (distance > r + .1) ? '#ffffff' : '#cc0000';
-			text += '<td class=vox BGCOLOR="' + bgcolor + '" style="width: 10px; height: 10px" data-distance="' + distance + '"></td>';
-		}
-		text += '</tr>\n';
-	}
-	text += '</table><br />\n';
-
-	var resultblock = document.getElementById('result');
-	resultblock.innerHTML = text;
-}
-</script>
-
-<style>
+<style type="text/css">
 table {
 	border-collapse: collapse;
 }
 
 td {
 	border: 1px solid white;
+	width: 15px;
+	height: 15px;
+}
+
+.filled {
+	background: red;
 }
 </style>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools-yui-compressed.js"></script>
+<script>
+window.addEvent('domready', function(){
+	var dia = $('diameter');
+	var resultblock = $('result');
 
+	function filled(x, y, r) {
+		return Math.sqrt(Math.pow(y, 2) + Math.pow(x, 2)) <= r;
+	}
+
+	function draw() {
+		
+		var r = parseFloat(dia.value, 10) / 2;
+
+		var maxblocks_x, maxblocks_y;
+		var img_scale = 10;
+		var text = '';
+
+		if ( (r * 2) % 2 == 0 ) {
+			maxblocks_x = Math.ceil(r - .5) * 2 + 1;
+			maxblocks_y = Math.ceil(r - .5) * 2 + 1;
+		} else {
+			maxblocks_x = Math.ceil(r) * 2;
+			maxblocks_y = Math.ceil(r) * 2;
+		}
+
+		text += '<table class="circle_output">';
+		for (var y = -maxblocks_y / 2; y <= maxblocks_y / 2; y++) {
+			text += '<tr>';
+			for (var x =- maxblocks_x / 2; x <= maxblocks_x / 2; x++) {
+
+				xf = ( 
+					filled(x + 1, y, r) &&
+					filled(x - 1, y, r) &&
+					filled(x, y + 1, r) &&
+					filled(x, y - 1, r) &&
+					filled(x + 1, y + 1, r) &&
+					filled(x + 1, y - 1, r) &&
+					filled(x - 1, y - 1, r) &&
+					filled(x - 1, y + 1, r)
+				);
+
+				var xfilled = filled(x,y,r) && !xf;
+				text += '<td class="'+(xfilled ? 'filled' : '')+'"></td>';
+			}
+			text += '</tr>';
+		}
+		text += '</table>';
+
+		resultblock.innerHTML = text;
+	}
+
+	dia.addEvent('keydown', function(e){
+		var val = parseFloat(dia.value, 10);
+		if( e.key == 'up' ) {
+			dia.value++;
+		}else if( e.key == 'down' ) {
+			dia.value--;
+		}
+	});
+
+	dia.addEvent('keyup', function(){
+		draw();
+	});
+
+
+	draw();
+});
+
+</script>
 </head>
 
-<body onload="process()">
-Circle Diameter: <input size="5" id="diameter" value="9" onkeyup="process(event)"> <br />
+<body>
+Circle Diameter: 
+<input size="5" id="diameter" value="8" autocomplete="off" autofocus="autofocus"> <br />
 
-<div ID="result"></div>
+<div id="result"></div>
 
 </body>
 </html>
