@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+<script>
+function process(e) {
+	if(typeof e.keyIdentifier != "undefined") {
+		
+	}
+	var bx = 1;
+	var by = 1;
+	
+	var r = parseFloat(document.getElementById('diameter').value, 10) / 2;
+
+	var maxblocks_x, maxblocks_y;
+	var img_scale = 10;
+	var text = '';
+
+	maxblocks_x = Math.ceil(r / bx) * 2;
+	maxblocks_y = Math.ceil(r / by) * 2;
+
+
+	text += '<table>\n';
+	for (var y = -maxblocks_y / 2; y <= maxblocks_y / 2; y++) {
+		text += '<tr>';
+		for (var x =- maxblocks_x / 2; x <= maxblocks_x / 2; x++) {
+			var distance = Math.sqrt(Math.pow(y * by, 2) + Math.pow(x * bx, 2));
+			var bgcolor = (distance > r + .1) ? '#ffffff' : '#cc0000';
+			text += '<td class=vox BGCOLOR="' + bgcolor + '" style="width: 10px; height: 10px" data-distance="' + distance + '"></td>';
+		}
+		text += '</tr>\n';
+	}
+	text += '</table><br />\n';
+
+	var resultblock = document.getElementById('result');
+	resultblock.innerHTML = text;
+}
+</script>
+
+<style>
+table {
+	border-collapse: collapse;
+}
+
+td {
+	border: 1px solid white;
+}
+</style>
+
+</head>
+
+<body onload="process()">
+Circle Diameter: <input size="5" id="diameter" value="9" onkeyup="process(event)"> <br />
+
+<div ID="result"></div>
+
+</body>
+</html>
