@@ -19,6 +19,10 @@ table.circle_output td {
 .filled {
 	background: red;
 }
+
+.filled.cgy0, .filled.cgx0 {
+	background: grey;
+}
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools-yui-compressed.js"></script>
 <script src="range-polyfill.js"></script>
@@ -71,7 +75,7 @@ window.addEvent('domready', function(){
 					filled(x - 1, y + 1, width_r, ratio)
 				);
 
-				text += '<td class="'+(xfilled ? 'filled' : '')+'"></td>';
+				text += '<td class="'+(xfilled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
 			}
 			text += '</tr>';
 		}
