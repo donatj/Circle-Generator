@@ -2,11 +2,7 @@
 <html>
 <head>
 <style type="text/css">
-table {
-	border-collapse: collapse;
-}
-
-td {
+table.circle_output td {
 	border: 1px solid white;
 	width: 15px;
 	height: 15px;
@@ -16,17 +12,19 @@ td {
 	background: red;
 }
 </style>
-<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools-yui-compressed.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools-yui-compressed.js"></script>
+<script src="range-polyfill.js"></script>
 <script>
 window.addEvent('domready', function(){
-	var dia = $('diameter');
+	var dia         = $('diameter');
 	var resultblock = $('result');
+	var scaler      = $('scaler');
 
-	function filled(x, y, r) {
+	var filled = function(x, y, r) {
 		return Math.sqrt(Math.pow(y, 2) + Math.pow(x, 2)) <= r;
 	}
 
-	function draw() {
+	var draw = function(){
 		
 		var r = parseFloat(dia.value, 10) / 2;
 
@@ -47,7 +45,7 @@ window.addEvent('domready', function(){
 			text += '<tr>';
 			for (var x =- maxblocks_x / 2; x <= maxblocks_x / 2; x++) {
 
-				xf = ( 
+				var xfilled = filled(x,y,r) && !( 
 					filled(x + 1, y, r) &&
 					filled(x - 1, y, r) &&
 					filled(x, y + 1, r) &&
@@ -58,15 +56,19 @@ window.addEvent('domready', function(){
 					filled(x - 1, y + 1, r)
 				);
 
-				var xfilled = filled(x,y,r) && !xf;
 				text += '<td class="'+(xfilled ? 'filled' : '')+'"></td>';
 			}
 			text += '</tr>';
 		}
 		text += '</table>';
-
 		resultblock.innerHTML = text;
+		re_size(); //this probably should be on a delay for IE but I'm not going to bother this moment
 	}
+
+	var re_size = function(){
+		var scale = (parseFloat(scaler.value,10) / 10);
+		$$('table.circle_output td').setStyles({'width': 15 * scale,'height': 15 * scale}); 
+	};
 
 	dia.addEvent('keydown', function(e){
 		var val = parseFloat(dia.value, 10);
@@ -77,14 +79,9 @@ window.addEvent('domready', function(){
 		}
 	});
 
-	dia.addEvent('keyup', function(){
-		draw();
-	});
+	dia.addEvent('keyup', draw).addEvent('change', draw);
 
-	$('scaler').addEvent('change', function(){
-		console.log(this.value);
-		resultblock.setStyle('zoom', this.value + ' '); //weird mootools bug
-	});
+	$('scaler').addEvent('change', re_size);
 
 
 	draw();
@@ -95,8 +92,8 @@ window.addEvent('domready', function(){
 
 <body>
 Circle Diameter: 
-<input size="5" id="diameter" value="8" autocomplete="off" autofocus="autofocus"> <br />
-<input type="range" min=".1" max="3" value="1" step=".1" id="scaler" /> <br />
+<input type="number" size="5" id="diameter" value="8" autocomplete="off" autofocus="autofocus"> <br />
+<input type="range" min="1" max="30" value="10" id="scaler" data-poly-scale=".1" /> <br />
 
 <div id="result"></div>
 
