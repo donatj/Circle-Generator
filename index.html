@@ -2,6 +2,14 @@
 <html>
 <head>
 <style type="text/css">
+body {
+	font-size: 11px;
+	font-family: monospace;
+}
+
+table.circle_output td {
+	border-collapse: collapse;
+}
 table.circle_output td {
 	border: 1px solid white;
 	width: 15px;
@@ -14,30 +22,37 @@ table.circle_output td {
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools-yui-compressed.js"></script>
 <script src="range-polyfill.js"></script>
+<script src="number-polyfill.js"></script>
 <script>
 window.addEvent('domready', function(){
 	var dia         = $('diameter');
+	var height      = $('height');
 	var resultblock = $('result');
 	var scaler      = $('scaler');
 
-	var filled = function(x, y, r) {
-		return Math.sqrt(Math.pow(y, 2) + Math.pow(x, 2)) <= r;
+	var filled = function(x, y, r, ratio) {
+		return Math.sqrt((Math.pow(y * ratio, 2)) + Math.pow(x, 2)) <= r;
 	}
 
 	var draw = function(){
-		
-		var r = parseFloat(dia.value, 10) / 2;
+		var width_r = parseFloat(dia.value, 10) / 2;
+		var height_r = parseFloat(height.value, 10) / 2;
+		var ratio = width_r / (parseFloat(height.value, 10) / 2);
 
 		var maxblocks_x, maxblocks_y;
 		var img_scale = 10;
 		var text = '';
 
-		if ( (r * 2) % 2 == 0 ) {
-			maxblocks_x = Math.ceil(r - .5) * 2 + 1;
-			maxblocks_y = Math.ceil(r - .5) * 2 + 1;
+		if ( (width_r * 2) % 2 == 0 ) {
+			maxblocks_x = Math.ceil(width_r - .5) * 2 + 1;
 		} else {
-			maxblocks_x = Math.ceil(r) * 2;
-			maxblocks_y = Math.ceil(r) * 2;
+			maxblocks_x = Math.ceil(width_r) * 2;	
+		}
+
+		if ( (height_r * 2) % 2 == 0 ) {
+			maxblocks_y = Math.ceil(height_r - .5) * 2 + 1;
+		} else {
+			maxblocks_y = Math.ceil(height_r) * 2;	
 		}
 
 		text += '<table class="circle_output">';
@@ -45,15 +60,15 @@ window.addEvent('domready', function(){
 			text += '<tr>';
 			for (var x =- maxblocks_x / 2; x <= maxblocks_x / 2; x++) {
 
-				var xfilled = filled(x,y,r) && !( 
-					filled(x + 1, y, r) &&
-					filled(x - 1, y, r) &&
-					filled(x, y + 1, r) &&
-					filled(x, y - 1, r) &&
-					filled(x + 1, y + 1, r) &&
-					filled(x + 1, y - 1, r) &&
-					filled(x - 1, y - 1, r) &&
-					filled(x - 1, y + 1, r)
+				var xfilled = filled(x, y, width_r, ratio) && !( 
+					filled(x + 1, y, width_r, ratio) &&
+					filled(x - 1, y, width_r, ratio) &&
+					filled(x, y + 1, width_r, ratio) &&
+					filled(x, y - 1, width_r, ratio) &&
+					filled(x + 1, y + 1, width_r, ratio) &&
+					filled(x + 1, y - 1, width_r, ratio) &&
+					filled(x - 1, y - 1, width_r, ratio) &&
+					filled(x - 1, y + 1, width_r, ratio)
 				);
 
 				text += '<td class="'+(xfilled ? 'filled' : '')+'"></td>';
@@ -68,21 +83,36 @@ window.addEvent('domready', function(){
 	var re_size = function(){
 		var scale = (parseFloat(scaler.value,10) / 10);
 		$$('table.circle_output td').setStyles({'width': 15 * scale,'height': 15 * scale}); 
-	};
+	};	
 
-	dia.addEvent('keydown', function(e){
-		var val = parseFloat(dia.value, 10);
-		if( e.key == 'up' ) {
-			dia.value++;
-		}else if( e.key == 'down' ) {
-			dia.value--;
-		}
-	});
-
-	dia.addEvent('keyup', draw).addEvent('change', draw);
+	$(dia).addEvent('keyup', draw).addEvent('change', draw);
+	$(height).addEvent('keyup', draw).addEvent('change', draw);
 
 	$('scaler').addEvent('change', re_size);
 
+	if(typeof localStorage == 'object') {
+
+		Storage.prototype.setObject = function(key, value) { this.setItem(key, JSON.stringify(value)); }
+		Storage.prototype.getObject = function(key) { return JSON.parse(this.getItem(key)); }
+
+		if( localStorage.circleGenerator ) {
+			var x = localStorage.getObject('circleGenerator', x);
+			Object.each(x, function(value, key){
+				$(key).set('value', value);
+			})
+		}
+
+		var storeToStorage = function(){
+			var x = {};
+			$$('input,select').each(function(e){
+				x[ e.get('id') ] = e.get('value');
+			});
+
+			localStorage.setObject('circleGenerator', x);
+		}
+
+		$$('input,select').addEvents({'keyup': storeToStorage, 'change': storeToStorage});
+	}
 
 	draw();
 });
@@ -91,8 +121,11 @@ window.addEvent('domready', function(){
 </head>
 
 <body>
-Circle Diameter: 
+Width : 
 <input type="number" size="5" id="diameter" value="8" autocomplete="off" autofocus="autofocus"> <br />
+Height:
+<input type="number" size="5" id="height" value="8" autocomplete="off" autofocus="autofocus"> <br />
+Scale :
 <input type="range" min="1" max="30" value="10" id="scaler" data-poly-scale=".1" /> <br />
 
 <div id="result"></div>
