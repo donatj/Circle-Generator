@@ -81,6 +81,11 @@ window.addEvent('domready', function(){
 		draw();
 	});
 
+	$('scaler').addEvent('change', function(){
+		console.log(this.value);
+		resultblock.setStyle('zoom', this.value + ' '); //weird mootools bug
+	});
+
 
 	draw();
 });
@@ -91,6 +96,7 @@ window.addEvent('domready', function(){
 <body>
 Circle Diameter: 
 <input size="5" id="diameter" value="8" autocomplete="off" autofocus="autofocus"> <br />
+<input type="range" min=".1" max="3" value="1" step=".1" id="scaler" /> <br />
 
 <div id="result"></div>
 
