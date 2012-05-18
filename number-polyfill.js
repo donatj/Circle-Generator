@@ -12,9 +12,5 @@ window.addEvent('domready', function(){
 				e.stop();
 			}
 		});
-
-		numbers.each(function(e,i){
-			console.log(e);
-		});
 	}
 });

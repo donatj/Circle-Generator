@@ -33,6 +33,7 @@ window.addEvent('domready', function(){
 	var height      = $('height');
 	var resultblock = $('result');
 	var scaler      = $('scaler');
+	var linked      = $('linked');
 
 	var filled = function(x, y, r, ratio) {
 		return Math.sqrt((Math.pow(y * ratio, 2)) + Math.pow(x, 2)) <= r;
@@ -81,42 +82,28 @@ window.addEvent('domready', function(){
 		}
 		text += '</table>';
 		resultblock.innerHTML = text;
-		re_size(); //this probably should be on a delay for IE but I'm not going to bother this moment
 	}
 
 	var re_size = function(){
 		var scale = (parseFloat(scaler.value,10) / 10);
 		$$('table.circle_output td').setStyles({'width': 15 * scale,'height': 15 * scale}); 
-	};	
+	};
 
-	$(dia).addEvent('keyup', draw).addEvent('change', draw);
-	$(height).addEvent('keyup', draw).addEvent('change', draw);
-
-	$('scaler').addEvent('change', re_size);
-
-	if(typeof localStorage == 'object') {
-
-		Storage.prototype.setObject = function(key, value) { this.setItem(key, JSON.stringify(value)); }
-		Storage.prototype.getObject = function(key) { return JSON.parse(this.getItem(key)); }
-
-		if( localStorage.circleGenerator ) {
-			var x = localStorage.getObject('circleGenerator', x);
-			Object.each(x, function(value, key){
-				$(key).set('value', value);
-			})
+	var sizechange = function(){
+		if(linked.checked) {
+			if(this.get('id') == height.get('id')) {
+				diameter.set('value', height.get('value'));
+			}else{
+				height.set('value', diameter.get('value'));
+			}
 		}
-
-		var storeToStorage = function(){
-			var x = {};
-			$$('input,select').each(function(e){
-				x[ e.get('id') ] = e.get('value');
-			});
-
-			localStorage.setObject('circleGenerator', x);
-		}
-
-		$$('input,select').addEvents({'keyup': storeToStorage, 'change': storeToStorage});
+		draw();
+		re_size(); //@todo this probably should be on a delay for IE but I'm not going to bother at this moment
 	}
+
+	$$(dia, height, linked).addEvent('keyup', sizechange).addEvent('change', sizechange);
+
+	scaler.addEvent('change', re_size);
 
 	draw();
 });
@@ -126,9 +113,10 @@ window.addEvent('domready', function(){
 
 <body>
 Width : 
-<input type="number" size="5" id="diameter" value="8" autocomplete="off" autofocus="autofocus"> <br />
+<input type="number" size="5" id="diameter" value="9" autocomplete="off" autofocus="autofocus">
+<label><input id="linked" type="checkbox" checked="checked" value="1" /> Linked</label><br />
 Height:
-<input type="number" size="5" id="height" value="8" autocomplete="off" autofocus="autofocus"> <br />
+<input type="number" size="5" id="height" value="9" autocomplete="off" autofocus="autofocus"> <br />
 Scale :
 <input type="range" min="1" max="30" value="10" id="scaler" data-poly-scale=".1" /> <br />
 
