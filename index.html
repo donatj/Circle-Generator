@@ -38,9 +38,27 @@ window.addEvent('domready', function(){
 	var resultblock = $('result');
 	var scaler      = $('scaler');
 	var linked      = $('linked');
+	var thickness   = $('thickness');
+
+	var distance = function(x, y, ratio) {
+		return Math.sqrt((Math.pow(y * ratio, 2)) + Math.pow(x, 2));
+	}
 
 	var filled = function(x, y, r, ratio) {
-		return Math.sqrt((Math.pow(y * ratio, 2)) + Math.pow(x, 2)) <= r;
+		return distance(x, y, ratio) <= r;
+	}
+
+	var fatfilled = function(x, y, r, ratio) {
+		return filled(x, y, r, ratio) && !( 
+			filled(x + 1, y, r, ratio) &&
+			filled(x - 1, y, r, ratio) &&
+			filled(x, y + 1, r, ratio) &&
+			filled(x, y - 1, r, ratio) &&
+			filled(x + 1, y + 1, r, ratio) &&
+			filled(x + 1, y - 1, r, ratio) &&
+			filled(x - 1, y - 1, r, ratio) &&
+			filled(x - 1, y + 1, r, ratio)
+		);
 	}
 
 	var draw = function(){
@@ -68,18 +86,16 @@ window.addEvent('domready', function(){
 		for (var y = -maxblocks_y / 2; y <= maxblocks_y / 2; y++) {
 			text += '<tr>';
 			for (var x =- maxblocks_x / 2; x <= maxblocks_x / 2; x++) {
+				var xfilled;
+				if( thickness.get('value') == 'thick' ) {
+					xfilled = fatfilled(x, y, width_r, ratio);
+				}else if( thickness.get('value') == 'thin' ){
+					xfilled = fatfilled(x, y, width_r, ratio) && 
+						!(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio));
 
-				var xfilled = filled(x, y, width_r, ratio) && !( 
-					filled(x + 1, y, width_r, ratio) &&
-					filled(x - 1, y, width_r, ratio) &&
-					filled(x, y + 1, width_r, ratio) &&
-					filled(x, y - 1, width_r, ratio) &&
-					filled(x + 1, y + 1, width_r, ratio) &&
-					filled(x + 1, y - 1, width_r, ratio) &&
-					filled(x - 1, y - 1, width_r, ratio) &&
-					filled(x - 1, y + 1, width_r, ratio)
-				);
-
+				}else{
+					xfilled = filled(x, y, width_r, ratio);
+				}
 				text += '<td class="'+(xfilled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
 			}
 			text += '</tr>';
@@ -105,7 +121,7 @@ window.addEvent('domready', function(){
 		re_size(); //@todo this probably should be on a delay for IE but I'm not going to bother at this moment
 	}
 
-	$$(dia, height, linked).addEvent('keyup', sizechange).addEvent('change', sizechange);
+	$$(dia, height, linked, thickness).addEvent('keyup', sizechange).addEvent('change', sizechange);
 
 	scaler.addEvent('change', re_size);
 
@@ -120,7 +136,9 @@ Width :
 <input type="number" size="5" id="diameter" value="9" autocomplete="off" autofocus="autofocus">
 <label><input id="linked" type="checkbox" checked="checked" value="1" /> Linked</label><br />
 Height:
-<input type="number" size="5" id="height" value="9" autocomplete="off" autofocus="autofocus"> <br />
+<input type="number" size="5" id="height" value="9" autocomplete="off" autofocus="autofocus"> 
+<select id="thickness"><option>thick</option><option>thin</option><option>filled</option></select>
+<br />
 Scale :
 <input type="range" min="1" max="30" value="10" id="scaler" data-poly-scale=".1" /> <br />
 
