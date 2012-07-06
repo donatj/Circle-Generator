@@ -62,12 +62,12 @@ window.addEvent('domready', function(){
 	}
 
 	var draw = function(){
+		var thick_t = thickness.get('value');
 		var width_r = parseFloat(dia.value, 10) / 2;
 		var height_r = parseFloat(height.value, 10) / 2;
-		var ratio = width_r / (parseFloat(height.value, 10) / 2);
+		var ratio = width_r / height_r;
 
 		var maxblocks_x, maxblocks_y;
-		var img_scale = 10;
 		var text = '';
 
 		if ( (width_r * 2) % 2 == 0 ) {
@@ -82,26 +82,30 @@ window.addEvent('domready', function(){
 			maxblocks_y = Math.ceil(height_r) * 2;	
 		}
 
-		text += '<table class="circle_output">';
-		for (var y = -maxblocks_y / 2; y <= maxblocks_y / 2; y++) {
-			text += '<tr>';
-			for (var x =- maxblocks_x / 2; x <= maxblocks_x / 2; x++) {
-				var xfilled;
-				if( thickness.get('value') == 'thick' ) {
-					xfilled = fatfilled(x, y, width_r, ratio);
-				}else if( thickness.get('value') == 'thin' ){
-					xfilled = fatfilled(x, y, width_r, ratio) && 
-						!(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio));
+		var hash = [width_r, height_r, thick_t].join();
+		var circleTable = $$('table.circle_output')[0];
+		if( !circleTable || circleTable.get('data-hash') != hash ) {
+			text += '<table class="circle_output" data-hash="'+hash+'">';
+			for (var y = -maxblocks_y / 2 + 1; y <= maxblocks_y / 2 - 1; y++) {
+				text += '<tr>';
+				for (var x =- maxblocks_x / 2 + 1; x <= maxblocks_x / 2 - 1; x++) {
+					var xfilled;
+					if( thick_t == 'thick' ) {
+						xfilled = fatfilled(x, y, width_r, ratio);
+					}else if( thick_t == 'thin' ){
+						xfilled = fatfilled(x, y, width_r, ratio) && 
+							!(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio));
 
-				}else{
-					xfilled = filled(x, y, width_r, ratio);
+					}else{
+						xfilled = filled(x, y, width_r, ratio);
+					}
+					text += '<td class="'+(xfilled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
 				}
-				text += '<td class="'+(xfilled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
+				text += '</tr>';
 			}
-			text += '</tr>';
+			text += '</table>';
+			resultblock.innerHTML = text;
 		}
-		text += '</table>';
-		resultblock.innerHTML = text;
 	}
 
 	var re_size = function(){
