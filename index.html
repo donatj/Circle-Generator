@@ -96,14 +96,19 @@ window.addEvent('domready', function(){
 				text += '<tr>';
 				for (var x =- maxblocks_x / 2 + 1; x <= maxblocks_x / 2 - 1; x++) {
 					var xfilled;
-					if( thick_t == 'thick' ) {
-						xfilled = fatfilled(x, y, width_r, ratio);
-					}else if( thick_t == 'thin' ){
-						xfilled = fatfilled(x, y, width_r, ratio) && 
-							!(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio));
 
+					if( filled(x, y, width_r, ratio) ) {
+						if( thick_t == 'thick' ) {
+							xfilled = fatfilled(x, y, width_r, ratio);
+						}else if( thick_t == 'thin' ){
+							xfilled = fatfilled(x, y, width_r, ratio) && 
+								!(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio));
+
+						}else{
+							xfilled = true;
+						}
 					}else{
-						xfilled = filled(x, y, width_r, ratio);
+						xfilled = false;
 					}
 					ifilled += (!!xfilled) * 1;
 					text += '<td class="'+(xfilled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
