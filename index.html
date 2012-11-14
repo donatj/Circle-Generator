@@ -49,20 +49,20 @@ window.addEvent('domready', function(){
 		return Math.sqrt((Math.pow(y * ratio, 2)) + Math.pow(x, 2));
 	}
 
-	var filled = function(x, y, r, ratio) {
-		return distance(x, y, ratio) <= r;
+	var filled = function(x, y, radius, ratio) {
+		return distance(x, y, ratio) <= radius;
 	}
 
-	var fatfilled = function(x, y, r, ratio) {
-		return filled(x, y, r, ratio) && !( 
-			filled(x + 1, y, r, ratio) &&
-			filled(x - 1, y, r, ratio) &&
-			filled(x, y + 1, r, ratio) &&
-			filled(x, y - 1, r, ratio) &&
-			filled(x + 1, y + 1, r, ratio) &&
-			filled(x + 1, y - 1, r, ratio) &&
-			filled(x - 1, y - 1, r, ratio) &&
-			filled(x - 1, y + 1, r, ratio)
+	var fatfilled = function(x, y, radius, ratio) {
+		return filled(x, y, radius, ratio) && !( 
+			filled(x + 1, y, radius, ratio) &&
+			filled(x - 1, y, radius, ratio) &&
+			filled(x, y + 1, radius, ratio) &&
+			filled(x, y - 1, radius, ratio) &&
+			filled(x + 1, y + 1, radius, ratio) &&
+			filled(x + 1, y - 1, radius, ratio) &&
+			filled(x - 1, y - 1, radius, ratio) &&
+			filled(x - 1, y + 1, radius, ratio)
 		);
 	}
 
