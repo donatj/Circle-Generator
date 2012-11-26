@@ -100,8 +100,7 @@ window.addEvent('domready', function(){
 		this.scale = function(scale){
 			var svgc = $$('#svg_circle');
 
-			svgc.set('width', scale + 'px');
-			svgc.set('height', scale + 'px');
+			svgc.set('width', scale + 'px').set({'width': scale + 'px','height': scale + 'px'}).setStyles({'width': scale,'height': scale});
 		};
 	}
 
