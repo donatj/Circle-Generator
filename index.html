@@ -66,6 +66,37 @@ window.addEvent('domready', function(){
 		);
 	}
 
+	function svg_renderer(max_x, max_y, scale) {
+		var inner_content = '';
+		var svg_width  = 10 * max_x;
+		var svg_height = 10 * max_y;
+
+		this.add = function(x, y, filled) {
+			if(filled) {
+				inner_content += '<rect x="'+((x * 10) + (svg_width/2))+'" y="'+((y * 10) + (svg_height/2))+'" fill="#FF0000" width="8" height="8"/>';
+			}
+		};
+
+		this.render = function(){
+			var text = '';
+			text += '<svg xmlns="http://www.w3.org/2000/svg" width="'+svg_width+'px" height="'+svg_height+'px" viewBox="0 0 '+svg_width+' '+svg_height+'">';
+			text += inner_content;
+			text += '</svg>';
+
+			return text;
+		};
+	}
+
+	function table_renderer(max_x, max_y, scale) {
+		this.add = function(x, y, filled) {
+
+		};
+
+		this.render = function(){
+
+		};
+	}
+
 	var draw = function(){
 		var thick_t = thickness.get('value');
 		var width_r = parseFloat(dia.value, 10) / 2;
@@ -73,7 +104,7 @@ window.addEvent('domready', function(){
 		var ratio = width_r / height_r;
 
 		var maxblocks_x, maxblocks_y;
-		var text = '';
+		//var text = '';
 		var ifilled = 0;
 
 		if ( (width_r * 2) % 2 == 0 ) {
@@ -88,14 +119,13 @@ window.addEvent('domready', function(){
 			maxblocks_y = Math.ceil(height_r) * 2;	
 		}
 
-		var svg_width  = 10 * maxblocks_x;
-		var svg_height = 10 * maxblocks_y;
+		var renderer = new svg_renderer( maxblocks_x, maxblocks_y, 1 );
 
 		var hash = [width_r, height_r, thick_t].join();
 		var circleTable = $$('svg.circle_output')[0];
 		if( !circleTable || circleTable.get('data-hash') != hash ) {
 			//text += '<table class="circle_output" data-hash="'+hash+'">';
-			text += '<svg xmlns="http://www.w3.org/2000/svg" width="'+svg_width+'px" height="'+svg_height+'px" viewBox="0 0 '+svg_width+' '+svg_height+'"  data-hash="'+hash+'">';
+
 			for (var y = -maxblocks_y / 2 + 1; y <= maxblocks_y / 2 - 1; y++) {
 				//text += '<tr>';
 				for (var x =- maxblocks_x / 2 + 1; x <= maxblocks_x / 2 - 1; x++) {
@@ -113,14 +143,12 @@ window.addEvent('domready', function(){
 
 					ifilled += (!!xfilled) * 1;
 					//text += '<td class="'+(xfilled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
-					if( xfilled ) {
-						text += '<rect x="'+((x * 10) + (svg_width/2))+'" y="'+((y * 10) + (svg_height/2))+'" fill="#FF0000" width="8" height="8"/>';
-					}
+					renderer.add( x, y, xfilled );
 				}
 				//text += '</tr>';
 			}
-			text += '</svg>';
-			resultblock.innerHTML = text;
+			
+			resultblock.innerHTML = renderer.render();
 			blockcount.set('html', ifilled);
 		}
 	}
