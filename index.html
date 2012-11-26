@@ -88,12 +88,25 @@ window.addEvent('domready', function(){
 	}
 
 	function table_renderer(max_x, max_y, scale) {
+		var row_data = {};
 		this.add = function(x, y, filled) {
-
+			var offset_y = y + max_y;
+			if(typeof row_data[offset_y] == "undefined") { row_data[offset_y] = ''; }
+			row_data[offset_y] += '<td class="'+(filled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
 		};
 
 		this.render = function(){
+			var text = '';
+			text += '<table class="circle_output">';
 
+			for( row in row_data ) {
+				if( row_data.hasOwnProperty(row) ) {
+					text += '<tr>'+ row_data[row] +'</tr>';
+				}
+			}
+			text += '</table>';
+
+			return text;
 		};
 	}
 
@@ -119,14 +132,12 @@ window.addEvent('domready', function(){
 			maxblocks_y = Math.ceil(height_r) * 2;	
 		}
 
-		var renderer = new svg_renderer( maxblocks_x, maxblocks_y, 1 );
+		var renderer = new table_renderer( maxblocks_x, maxblocks_y, 1 );
 		var hash = [width_r, height_r, thick_t].join();
 		
 		if( resultblock.get('data-hash') != hash ) {
-			//text += '<table class="circle_output" data-hash="'+hash+'">';
 
 			for (var y = -maxblocks_y / 2 + 1; y <= maxblocks_y / 2 - 1; y++) {
-				//text += '<tr>';
 				for (var x =- maxblocks_x / 2 + 1; x <= maxblocks_x / 2 - 1; x++) {
 					var xfilled;
 
@@ -141,10 +152,9 @@ window.addEvent('domready', function(){
 					}
 
 					ifilled += (!!xfilled) * 1;
-					//text += '<td class="'+(xfilled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
+
 					renderer.add( x, y, xfilled );
 				}
-				//text += '</tr>';
 			}
 			
 			resultblock.set('data-hash', hash);
