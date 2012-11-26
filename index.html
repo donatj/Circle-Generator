@@ -195,10 +195,10 @@ window.addEvent('domready', function(){
 			blockcount.set('html', ifilled);
 		}
 
-		re_size();
+		rescale();
 	}
 
-	var re_size = function(){
+	var rescale = function(){
 		renderer.scale(scaler.value);
 	};
 
@@ -215,7 +215,7 @@ window.addEvent('domready', function(){
 
 	$$(dia, height, linked, thickness).addEvent('keyup', sizechange).addEvent('change', sizechange);
 
-	scaler.addEvent('change', re_size);
+	scaler.addEvent('change', rescale);
 
 	draw();
 });
