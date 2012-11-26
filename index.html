@@ -66,49 +66,82 @@ window.addEvent('domready', function(){
 		);
 	}
 
-	function Svg_renderer(max_x, max_y, scale) {
-		var inner_content = '';
-		var svg_width  = 10 * max_x;
-		var svg_height = 10 * max_y;
+	function Svg_renderer() {
+		var _inner_content = '';
+		var _svg_width  = 1;
+		var _svg_height = 1;
+
+		var _max_x = 0;
+		var _max_y = 0;
+
+		this.init = function(max_x, max_y){
+			_max_x = max_x;
+			_max_y = max_y;
+			_svg_width  = 10 * max_x;
+			_svg_height = 10 * max_y;
+			_inner_content = '';
+		}
 
 		this.add = function(x, y, filled) {
 			if(filled) {
-				inner_content += '<rect x="'+((x * 10) + (svg_width/2))+'" y="'+((y * 10) + (svg_height/2))+'" fill="#FF0000" width="8" height="8"/>';
+				_inner_content += '<rect x="'+((x * 10) + (_svg_width/2) - 10)+'" y="'+((y * 10) + (_svg_height/2) - 10)+'" fill="#FF0000" width="9" height="9"/>';
 			}
 		};
 
 		this.render = function(){
 			var text = '';
-			text += '<svg xmlns="http://www.w3.org/2000/svg" width="'+svg_width+'px" height="'+svg_height+'px" viewBox="0 0 '+svg_width+' '+svg_height+'">';
-			text += inner_content;
+			text += '<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" width="'+_svg_width+'px" height="'+_svg_height+'px" viewBox="0 0 '+_svg_width+' '+_svg_height+'">';
+			text += _inner_content;
 			text += '</svg>';
 
 			return text;
 		};
+
+		this.scale = function(scale){
+			var svgc = $$('#svg_circle');
+
+			svgc.set('width', scale + 'px');
+			svgc.set('height', scale + 'px');
+		};
 	}
 
-	function Table_renderer(max_x, max_y, scale) {
-		var row_data = {};
+	function Table_renderer() {
+		var _row_data = {};
+		var _max_y;
+
+		this.init = function(max_x, max_y){
+			_max_x = max_x;
+			_max_y = max_y;
+			_row_data = {};
+		}
+
 		this.add = function(x, y, filled) {
-			var offset_y = y + max_y;
-			if(typeof row_data[offset_y] == "undefined") { row_data[offset_y] = ''; }
-			row_data[offset_y] += '<td class="'+(filled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
+			var offset_y = y + _max_y;
+			if(typeof _row_data[offset_y] == "undefined") { _row_data[offset_y] = ''; }
+			_row_data[offset_y] += '<td class="'+(filled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
 		};
 
 		this.render = function(){
 			var text = '';
 			text += '<table class="circle_output">';
 
-			for( row in row_data ) {
-				if( row_data.hasOwnProperty(row) ) {
-					text += '<tr>'+ row_data[row] +'</tr>';
+			for( row in _row_data ) {
+				if( _row_data.hasOwnProperty(row) ) {
+					text += '<tr>'+ _row_data[row] +'</tr>';
 				}
 			}
 			text += '</table>';
 
 			return text;
 		};
+
+		this.scale = function(scale){
+			var tdwidth = scale / _max_x;
+			$$('table.circle_output td').setStyles({'width': tdwidth,'height': tdwidth}); 
+		};
 	}
+
+	var renderer = new Svg_renderer();
 
 	var draw = function(){
 		var thick_t = thickness.get('value');
@@ -132,7 +165,7 @@ window.addEvent('domready', function(){
 			maxblocks_y = Math.ceil(height_r) * 2;	
 		}
 
-		var renderer = new Svg_renderer( maxblocks_x, maxblocks_y, 1 );
+		renderer.init( maxblocks_x, maxblocks_y, 1 );
 		var hash = [width_r, height_r, thick_t].join();
 		
 		if( resultblock.get('data-hash') != hash ) {
@@ -161,11 +194,12 @@ window.addEvent('domready', function(){
 			resultblock.innerHTML = renderer.render();
 			blockcount.set('html', ifilled);
 		}
+
+		re_size();
 	}
 
 	var re_size = function(){
-		var scale = (parseFloat(scaler.value,10) / 10);
-		$$('table.circle_output td').setStyles({'width': 15 * scale,'height': 15 * scale}); 
+		renderer.scale(scaler.value);
 	};
 
 	var sizechange = function(){
@@ -177,7 +211,6 @@ window.addEvent('domready', function(){
 			}
 		}
 		draw();
-		re_size(); //@todo this probably should be on a delay for IE but I'm not going to bother at this moment
 	}
 
 	$$(dia, height, linked, thickness).addEvent('keyup', sizechange).addEvent('change', sizechange);
@@ -201,7 +234,7 @@ Height:
 <select id="thickness"><option>thick</option><option>thin</option><option>filled</option></select>
 <br />
 Scale :
-<input type="range" min="1" max="30" value="10" id="scaler" data-poly-scale=".1" />
+<input type="range" min="50" max="2000" value="300" id="scaler" data-poly-scale=".1" />
 <br />
 
 <div id="result"></div>
