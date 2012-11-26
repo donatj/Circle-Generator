@@ -88,34 +88,38 @@ window.addEvent('domready', function(){
 			maxblocks_y = Math.ceil(height_r) * 2;	
 		}
 
+		var svg_width  = 10 * maxblocks_x;
+		var svg_height = 10 * maxblocks_y;
+
 		var hash = [width_r, height_r, thick_t].join();
-		var circleTable = $$('table.circle_output')[0];
+		var circleTable = $$('svg.circle_output')[0];
 		if( !circleTable || circleTable.get('data-hash') != hash ) {
-			text += '<table class="circle_output" data-hash="'+hash+'">';
+			//text += '<table class="circle_output" data-hash="'+hash+'">';
+			text += '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="'+svg_width+'px" height="'+svg_height+'px" viewBox="0 0 '+svg_width+' '+svg_height+'"  data-hash="'+hash+'">';
 			for (var y = -maxblocks_y / 2 + 1; y <= maxblocks_y / 2 - 1; y++) {
-				text += '<tr>';
+				//text += '<tr>';
 				for (var x =- maxblocks_x / 2 + 1; x <= maxblocks_x / 2 - 1; x++) {
 					var xfilled;
 
-					if( filled(x, y, width_r, ratio) ) {
-						if( thick_t == 'thick' ) {
-							xfilled = fatfilled(x, y, width_r, ratio);
-						}else if( thick_t == 'thin' ){
-							xfilled = fatfilled(x, y, width_r, ratio) && 
-								!(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio));
+					if( thick_t == 'thick' ) {
+						xfilled = fatfilled(x, y, width_r, ratio);
+					}else if( thick_t == 'thin' ){
+						xfilled = fatfilled(x, y, width_r, ratio) && 
+							!(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio));
 
-						}else{
-							xfilled = true;
-						}
 					}else{
-						xfilled = false;
+						xfilled = filled(x, y, width_r, ratio);
 					}
+
 					ifilled += (!!xfilled) * 1;
-					text += '<td class="'+(xfilled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
+					//text += '<td class="'+(xfilled ? 'filled' : '')+' cgx'+x+' cgy'+y+'"></td>';
+					if( xfilled ) {
+						text += '<rect x="'+((x * 10) + (svg_width/2))+'" y="'+((y * 10) + (svg_height/2))+'" fill="#FF0000" width="8" height="8"/>';
+					}
 				}
-				text += '</tr>';
+				//text += '</tr>';
 			}
-			text += '</table>';
+			text += '</svg>';
 			resultblock.innerHTML = text;
 			blockcount.set('html', ifilled);
 		}
