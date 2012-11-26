@@ -95,7 +95,7 @@ window.addEvent('domready', function(){
 		var circleTable = $$('svg.circle_output')[0];
 		if( !circleTable || circleTable.get('data-hash') != hash ) {
 			//text += '<table class="circle_output" data-hash="'+hash+'">';
-			text += '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="'+svg_width+'px" height="'+svg_height+'px" viewBox="0 0 '+svg_width+' '+svg_height+'"  data-hash="'+hash+'">';
+			text += '<svg xmlns="http://www.w3.org/2000/svg" width="'+svg_width+'px" height="'+svg_height+'px" viewBox="0 0 '+svg_width+' '+svg_height+'"  data-hash="'+hash+'">';
 			for (var y = -maxblocks_y / 2 + 1; y <= maxblocks_y / 2 - 1; y++) {
 				//text += '<tr>';
 				for (var x =- maxblocks_x / 2 + 1; x <= maxblocks_x / 2 - 1; x++) {
