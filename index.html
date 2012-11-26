@@ -83,6 +83,10 @@ window.addEvent('domready', function(){
 		}
 
 		this.add = function(x, y, filled) {
+
+			var xp = ((x * 10) + (_svg_width/2) - 5) + .5;
+			var yp = ((y * 10) + (_svg_height/2) - 5) + .5;
+
 			if(filled) {
 				var color = '';
 				if( x == 0 || y == 0 ) {
@@ -90,9 +94,9 @@ window.addEvent('domready', function(){
 				}else{
 					color = '#FF0000';
 				}
-				_inner_content += '<rect x="'+((x * 10) + (_svg_width/2) - 10)+'" y="'+((y * 10) + (_svg_height/2) - 10)+'" fill="'+color+'" width="9" height="9"/>';
+				_inner_content += '<rect x="'+xp+'" y="'+yp+'" fill="'+color+'" width="9" height="9"/>';
 			}else if(x == 0 || y == 0){
-				_inner_content += '<rect x="'+((x * 10) + (_svg_width/2) - 10)+'" y="'+((y * 10) + (_svg_height/2) - 10)+'" fill="#eeeeee" width="9" height="9"/>';
+				_inner_content += '<rect x="'+xp+'" y="'+yp+'" fill="#eeeeee" width="9" height="9"/>';
 			}
 		};
 
@@ -100,6 +104,16 @@ window.addEvent('domready', function(){
 			var text = '';
 			text += '<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" width="'+_svg_width+'px" height="'+_svg_height+'px" viewBox="0 0 '+_svg_width+' '+_svg_height+'">';
 			text += _inner_content;
+			
+
+			for(var ix = 0; ix < _svg_width; ix += 10) {
+				text += '<rect x="'+(ix + 4.5)+'" y="0" fill="#bbbbbb" width="1" height="'+_svg_height+'" opacity=".4" />';
+			}
+
+			for(var iy = 0; iy < _svg_height; iy += 10) {
+				text += '<rect x="0" y="'+(iy + 4.5)+'" fill="#bbbbbb" width="'+_svg_width+'" opacity=".6" height="1"/>';
+			}
+
 			text += '</svg>';
 
 			return text;
