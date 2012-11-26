@@ -10,7 +10,7 @@ window.addEvent('domready', function(){
 
 			var select = new Element('select', {
 				'id'   : e.get('id'),
-				'class': e.get('class'),
+				'class': e.get('class')
 			});
 			select.cloneEvents(e);
 
@@ -18,7 +18,7 @@ window.addEvent('domready', function(){
 				var option = new Element('option', {
 					'html'    : ((i * scale) + "").substring(0,3), //JavaScript sucks at numbers
 					'value'   : i,
-					'selected': i == selected ? 'selected' : '',
+					'selected': i == selected ? 'selected' : ''
 				});
 				select.adopt(option);
 			}
