@@ -84,7 +84,15 @@ window.addEvent('domready', function(){
 
 		this.add = function(x, y, filled) {
 			if(filled) {
-				_inner_content += '<rect x="'+((x * 10) + (_svg_width/2) - 10)+'" y="'+((y * 10) + (_svg_height/2) - 10)+'" fill="#FF0000" width="9" height="9"/>';
+				var color = '';
+				if( x == 0 || y == 0 ) {
+					color = '#808080';
+				}else{
+					color = '#FF0000';
+				}
+				_inner_content += '<rect x="'+((x * 10) + (_svg_width/2) - 10)+'" y="'+((y * 10) + (_svg_height/2) - 10)+'" fill="'+color+'" width="9" height="9"/>';
+			}else if(x == 0 || y == 0){
+				_inner_content += '<rect x="'+((x * 10) + (_svg_width/2) - 10)+'" y="'+((y * 10) + (_svg_height/2) - 10)+'" fill="#eeeeee" width="9" height="9"/>';
 			}
 		};
 
