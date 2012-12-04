@@ -87,16 +87,20 @@ window.addEvent('domready', function(){
 			var xp = ((x * 10) + (_svg_width/2) - 5) + .5;
 			var yp = ((y * 10) + (_svg_height/2) - 5) + .5;
 
+			var color = false;
+
 			if(filled) {
-				var color = '';
 				if( x == 0 || y == 0 ) {
 					color = '#808080';
 				}else{
 					color = '#FF0000';
 				}
-				_inner_content += '<rect x="'+xp+'" y="'+yp+'" fill="'+color+'" width="9" height="9"/>';
 			}else if(x == 0 || y == 0){
-				_inner_content += '<rect x="'+xp+'" y="'+yp+'" fill="#eeeeee" width="9" height="9"/>';
+				color = '#EEEEEE';
+			}
+
+			if( color !== false ) {
+				_inner_content += '<rect x="'+xp+'" y="'+yp+'" fill="'+color+'" width="9" height="9"/>';
 			}
 		};
 
