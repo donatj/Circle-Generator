@@ -1,6 +1,6 @@
 
 window.addEvent('domready', function(){
-	if( new Element('input[type=range]').type == 'text') {
+	if( new Element('input[type=range]').type == 'text' || true) {
 		$$('input[type=range]').each(function(e){
 			var min  = parseFloat(e.get('min' ))  || 0;
 			var max  = parseFloat(e.get('max' ))  || 100;
@@ -16,7 +16,7 @@ window.addEvent('domready', function(){
 
 			for(var i = min; i <= max; i += step ) {
 				var option = new Element('option', {
-					'html'    : ((i * scale) + "").substring(0,3), //JavaScript sucks at numbers
+					'html'    : parseFloat( ((i * scale) + "").substr(0,8) ),
 					'value'   : i,
 					'selected': i == selected ? 'selected' : ''
 				});
