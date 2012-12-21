@@ -99,8 +99,12 @@ window.addEvent('domready', function(){
 				}else{
 					color = '#FF0000';
 				}
-			}else if(x == 0 || y == 0){
-				color = '#EEEEEE';
+			}else if( x == 0 || y == 0 ){
+				if( x & 1 || y & 1 ) {
+					color = '#EEEEEE';
+				}else{
+					color = '#F8F8F8';
+				}
 			}
 
 			if( color !== false ) {
