@@ -74,18 +74,22 @@ window.addEvent('domready', function(){
 		var _max_x = 0;
 		var _max_y = 0;
 
+		var _dwidth = 5;
+		var _dborder = 1;
+		var _dfull = _dwidth + _dborder;
+
 		this.init = function(max_x, max_y){
 			_max_x = max_x;
 			_max_y = max_y;
-			_svg_width  = 10 * max_x;
-			_svg_height = 10 * max_y;
+			_svg_width  = _dfull * max_x;
+			_svg_height = _dfull * max_y;
 			_inner_content = '';
 		}
 
 		this.add = function(x, y, filled) {
 
-			var xp = ((x * 10) + (_svg_width/2) - 5) + .5;
-			var yp = ((y * 10) + (_svg_height/2) - 5) + .5;
+			var xp = ((x * _dfull) + (_svg_width/2) - (_dfull / 2)) + .5;
+			var yp = ((y * _dfull) + (_svg_height/2) - (_dfull / 2)) + .5;
 
 			var color = false;
 
@@ -100,7 +104,7 @@ window.addEvent('domready', function(){
 			}
 
 			if( color !== false ) {
-				_inner_content += '<rect x="'+xp+'" y="'+yp+'" fill="'+color+'" width="9" height="9"/>';
+				_inner_content += '<rect x="'+xp+'" y="'+yp+'" fill="'+color+'" width="'+_dwidth+'" height="'+_dwidth+'"/>';
 			}
 		};
 
@@ -110,12 +114,12 @@ window.addEvent('domready', function(){
 			text += _inner_content;
 			
 
-			for(var ix = 0; ix < _svg_width; ix += 10) {
-				text += '<rect x="'+(ix + 4.5)+'" y="0" fill="#bbbbbb" width="1" height="'+_svg_height+'" opacity=".4" />';
+			for(var ix = 0; ix < _svg_width; ix += _dfull) {
+				text += '<rect x="'+(ix + (_dwidth / 2))+'" y="0" fill="#bbbbbb" width="'+_dborder+'" height="'+_svg_height+'" opacity=".4" />';
 			}
 
-			for(var iy = 0; iy < _svg_height; iy += 10) {
-				text += '<rect x="0" y="'+(iy + 4.5)+'" fill="#bbbbbb" width="'+_svg_width+'" opacity=".6" height="1"/>';
+			for(var iy = 0; iy < _svg_height; iy += _dfull) {
+				text += '<rect x="0" y="'+(iy + (_dwidth / 2))+'" fill="#bbbbbb" width="'+_svg_width+'" opacity=".6" height="'+_dborder+'"/>';
 			}
 
 			text += '</svg>';
