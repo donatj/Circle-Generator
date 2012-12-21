@@ -190,7 +190,7 @@ window.addEvent('domready', function(){
 			maxblocks_y = Math.ceil(height_r) * 2;	
 		}
 
-		renderer.init( maxblocks_x, maxblocks_y, 1 );
+		renderer.init( maxblocks_x, maxblocks_y );
 		var hash = [width_r, height_r, thick_t].join();
 		
 		if( resultblock.get('data-hash') != hash ) {
