@@ -1,6 +1,6 @@
 
 window.addEvent('domready', function(){
-	if( new Element('input[type=range]').type == 'text' || true) {
+	if( new Element('input[type=range]').type == 'text') {
 		$$('input[type=range]').each(function(e){
 			var min  = parseFloat(e.get('min' ))  || 0;
 			var max  = parseFloat(e.get('max' ))  || 100;
