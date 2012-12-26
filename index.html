@@ -49,9 +49,14 @@ window.addEvent('domready', function(){
 	var resultblock = $('result'),
 		blockcount  = $('blockcount');
 
-	if( window.location.hash ) {
+	if( !!window.location.hash || (!!window.localStorage && !!window.localStorage.CircleHash) ) {
 		try{
-			var hashval = JSON.decode( window.location.hash.replace(/^[# ]+/g, "") );
+			var hashval = {};
+			if( !!window.location.hash ) {
+				var hashval = JSON.decode( window.location.hash.replace(/^[# ]+/g, "") );
+			}else{
+				var hashval = JSON.decode( window.localStorage.CircleHash );
+			}
 			dia.set('value',        hashval.width);
 			height.set('value',     hashval.height);
 			thickness.set('value',  hashval.thickness);
@@ -225,6 +230,10 @@ window.addEvent('domready', function(){
 			linked:    linked.checked,
 			scaler:    scaler.get('value')
 		});
+
+		if( window.localStorage ) {
+			window.localStorage.CircleHash = hash;
+		}
 
 		window.location.hash = hash;
 		
