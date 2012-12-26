@@ -47,11 +47,11 @@ window.addEvent('domready', function(){
 
 	var distance = function(x, y, ratio) {
 		return Math.sqrt((Math.pow(y * ratio, 2)) + Math.pow(x, 2));
-	}
+	};
 
 	var filled = function(x, y, radius, ratio) {
 		return distance(x, y, ratio) <= radius;
-	}
+	};
 
 	var fatfilled = function(x, y, radius, ratio) {
 		return filled(x, y, radius, ratio) && !( 
@@ -64,7 +64,7 @@ window.addEvent('domready', function(){
 			filled(x - 1, y - 1, radius, ratio) &&
 			filled(x - 1, y + 1, radius, ratio)
 		);
-	}
+	};
 
 	var Svg_renderer = function() {
 		var _inner_content = '';
@@ -84,7 +84,7 @@ window.addEvent('domready', function(){
 			_svg_width  = _dfull * max_x;
 			_svg_height = _dfull * max_y;
 			_inner_content = '';
-		}
+		};
 
 		this.add = function(x, y, filled) {
 
@@ -172,7 +172,7 @@ window.addEvent('domready', function(){
 			var tdwidth = scale / _max_x;
 			$$('table.circle_output td').setStyles({'width': tdwidth,'height': tdwidth}); 
 		};
-	}
+	};
 
 	var renderer = new Svg_renderer();
 
@@ -229,7 +229,7 @@ window.addEvent('domready', function(){
 		}
 
 		rescale();
-	}
+	};
 
 	var rescale = function(){
 		renderer.scale(scaler.value);
@@ -244,7 +244,7 @@ window.addEvent('domready', function(){
 			}
 		}
 		draw();
-	}
+	};
 
 	$$(dia, height, linked, thickness).addEvent('keyup', sizechange).addEvent('change', sizechange);
 
