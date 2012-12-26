@@ -49,6 +49,21 @@ window.addEvent('domready', function(){
 	var resultblock = $('result'),
 		blockcount  = $('blockcount');
 
+	if( window.location.hash ) {
+		try{
+			var hashval = JSON.decode( window.location.hash.replace(/^[# ]+/g, "") );
+			dia.set('value',        hashval.width);
+			height.set('value',     hashval.height);
+			thickness.set('value',  hashval.thickness);
+			scaler.set('value',     hashval.scaler);
+			console.log(hashval);
+			linked.checked =      !!hashval.linked;
+		}catch(err){
+			console.log('err');
+		}
+		
+	}
+
 	var distance = function(x, y, ratio) {
 		return Math.sqrt((Math.pow(y * ratio, 2)) + Math.pow(x, 2));
 	};
@@ -203,7 +218,15 @@ window.addEvent('domready', function(){
 		}
 
 		renderer.init( maxblocks_x, maxblocks_y );
-		var hash = [width_r, height_r, thick_t].join();
+		var hash = JSON.encode({
+			width:     width_r * 2, 
+			height:    height_r * 2, 
+			thickness: thick_t,
+			linked:    linked.checked,
+			scaler:    scaler.get('value')
+		});
+
+		window.location.hash = hash;
 		
 		if( resultblock.get('data-hash') != hash ) {
 
