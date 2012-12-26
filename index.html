@@ -37,13 +37,17 @@ table.circle_output td {
 <script src="number-polyfill.js"></script>
 <script>
 window.addEvent('domready', function(){
-	var dia         = $('diameter');
-	var height      = $('height');
-	var resultblock = $('result');
-	var scaler      = $('scaler');
-	var linked      = $('linked');
-	var thickness   = $('thickness');
-	var blockcount  = $('blockcount');
+
+	//inputs
+	var dia         = $('diameter'),
+		height      = $('height'),
+		scaler      = $('scaler'),
+		linked      = $('linked'),
+		thickness   = $('thickness');
+
+	//outputs
+	var resultblock = $('result'),
+		blockcount  = $('blockcount');
 
 	var distance = function(x, y, ratio) {
 		return Math.sqrt((Math.pow(y * ratio, 2)) + Math.pow(x, 2));
