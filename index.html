@@ -61,10 +61,9 @@ window.addEvent('domready', function(){
 			height.set('value',     hashval.height);
 			thickness.set('value',  hashval.thickness);
 			scaler.set('value',     hashval.scaler);
-			console.log(hashval);
 			linked.checked =      !!hashval.linked;
 		}catch(err){
-			console.log('err');
+			alert('Could not restore previous circle settings');
 		}
 		
 	}
