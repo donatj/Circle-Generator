@@ -52,6 +52,7 @@ window.addEvent('domready', function(){
 	if( !!window.location.hash || (!!window.localStorage && !!window.localStorage.CircleHash) ) {
 		try{
 			var hashval = {};
+			
 			if( !!window.location.hash ) {
 				var hashval = JSON.decode( window.location.hash.replace(/^[# ]+/g, "") );
 			}else{
@@ -63,7 +64,7 @@ window.addEvent('domready', function(){
 			scaler.set('value',     hashval.scaler);
 			linked.checked =        hashval.width == hashval.height;
 		}catch(err){
-			alert('Could not restore previous circle settings');
+			if( console && console.log ) console.log(err);
 		}
 		
 	}
@@ -188,6 +189,8 @@ window.addEvent('domready', function(){
 			}
 			text += '</table>';
 
+			text = '<p>Your browser does not support SVG, running in table compatibility mode. <br /> You will get <b>insanely</b> better performance from a modern browser like <a href="https://www.google.com/chrome/" target="_blank">Chrome</a>.</p>' + text;
+
 			return text;
 		};
 
@@ -197,7 +200,8 @@ window.addEvent('domready', function(){
 		};
 	};
 
-	var renderer = new Svg_renderer();
+
+	var renderer = document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1") ? new Svg_renderer() : new Table_renderer();
 
 	var hashTimeout = false;
 
@@ -233,13 +237,13 @@ window.addEvent('domready', function(){
 
 		//setting it every time was slow, pause a second and then set it
 		window.clearTimeout(hashTimeout);
-		hashTimeout = window.setTimeout(function(hash){
+		hashTimeout = window.setTimeout(function(){
 			if( window.localStorage ) {
 				window.localStorage.CircleHash = hash;
 			}
 
 			window.location.hash = hash;
-		}, 1000, hash);
+		}, 1000);
 		
 		if( resultblock.get('data-hash') != hash ) {
 
