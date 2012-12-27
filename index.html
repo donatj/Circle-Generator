@@ -199,6 +199,8 @@ window.addEvent('domready', function(){
 
 	var renderer = new Svg_renderer();
 
+	var hashTimeout = false;
+
 	var draw = function(){
 		var thick_t = thickness.get('value');
 		var width_r = parseFloat(dia.value, 10) / 2;
@@ -229,11 +231,15 @@ window.addEvent('domready', function(){
 			scaler:    scaler.get('value')
 		});
 
-		if( window.localStorage ) {
-			window.localStorage.CircleHash = hash;
-		}
+		//setting it every time was slow, pause a second and then set it
+		window.clearTimeout(hashTimeout);
+		hashTimeout = window.setTimeout(function(hash){
+			if( window.localStorage ) {
+				window.localStorage.CircleHash = hash;
+			}
 
-		window.location.hash = hash;
+			window.location.hash = hash;
+		}, 1000, hash);
 		
 		if( resultblock.get('data-hash') != hash ) {
 
