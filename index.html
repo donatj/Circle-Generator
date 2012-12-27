@@ -61,7 +61,7 @@ window.addEvent('domready', function(){
 			height.set('value',     hashval.height);
 			thickness.set('value',  hashval.thickness);
 			scaler.set('value',     hashval.scaler);
-			linked.checked =      !!hashval.linked;
+			linked.checked =        hashval.width == hashval.height;
 		}catch(err){
 			alert('Could not restore previous circle settings');
 		}
@@ -226,7 +226,6 @@ window.addEvent('domready', function(){
 			width:     width_r * 2, 
 			height:    height_r * 2, 
 			thickness: thick_t,
-			linked:    linked.checked,
 			scaler:    scaler.get('value')
 		});
 
