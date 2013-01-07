@@ -54,12 +54,12 @@ window.addEvent('domready', function(){
 			var hashval = {};
 			
 			if( !!window.location.hash ) {
-				var hashval = JSON.decode( window.location.hash.replace(/^[# ]+/g, "") );
+				var hashval = JSON.decode( window.atob( window.location.hash.replace(/^[# ]+/g, "") ) );
 			}else{
 				var hashval = JSON.decode( window.localStorage.CircleHash );
 			}
-			dia.set('value',        hashval.width);
-			height.set('value',     hashval.height);
+			dia.set('value',        Math.max( hashval.width,  1) );
+			height.set('value',     Math.max( hashval.height, 1) );
 			thickness.set('value',  hashval.thickness);
 			scaler.set('value',     hashval.scaler);
 			linked.checked =        hashval.width == hashval.height;
@@ -101,6 +101,12 @@ window.addEvent('domready', function(){
 		var _dwidth = 5;
 		var _dborder = 1;
 		var _dfull = _dwidth + _dborder;
+
+		var hasInlineSvg = function() {
+			var div = document.createElement('div');
+			div.innerHTML = '<svg/>';
+			return (div.firstChild && div.firstChild.namespaceURI) == 'http://www.w3.org/2000/svg';
+		}
 
 		this.init = function(max_x, max_y){
 			_max_x = max_x;
@@ -152,7 +158,12 @@ window.addEvent('domready', function(){
 
 			text += '</svg>';
 
-			return text;
+			if( hasInlineSvg() ) {
+				return text;
+			}else{
+				return '<img id="svg_circle" src="data:image/svg+xml;base64,' + window.btoa(text) + '">';
+			}
+			
 		};
 
 		this.scale = function(scale){
@@ -242,7 +253,7 @@ window.addEvent('domready', function(){
 				window.localStorage.CircleHash = hash;
 			}
 
-			window.location.hash = hash;
+			window.location.hash = window.btoa(hash);
 		}, 1000);
 		
 		if( resultblock.get('data-hash') != hash ) {
@@ -280,6 +291,7 @@ window.addEvent('domready', function(){
 	};
 
 	var sizechange = function(){
+		this.set('value', parseInt( this.get('value'), 10 ));
 		if(linked.checked) {
 			if(this.get('id') == height.get('id')) {
 				diameter.set('value', height.get('value'));
