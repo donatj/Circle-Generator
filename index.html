@@ -290,8 +290,9 @@ window.addEvent('domready', function(){
 		renderer.scale(scaler.value);
 	};
 
-	var sizechange = function(){
-		this.set('value', parseInt( this.get('value'), 10 ));
+	var numcleanup = function(){
+		this.set('value', parseInt( this.get('value'), 10 ).limit(1,2000) );
+
 		if(linked.checked) {
 			if(this.get('id') == height.get('id')) {
 				diameter.set('value', height.get('value'));
@@ -299,10 +300,10 @@ window.addEvent('domready', function(){
 				height.set('value', diameter.get('value'));
 			}
 		}
-		draw();
-	};
+	}
 
-	$$(dia, height, linked, thickness).addEvent('keyup', sizechange).addEvent('change', sizechange);
+	$$(dia, height).addEvent('keyup', numcleanup).addEvent('change', numcleanup);
+	$$(dia, height, linked, thickness).addEvent('keyup', draw).addEvent('change', draw);
 
 	scaler.addEvent('change', rescale);
 
