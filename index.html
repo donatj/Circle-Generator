@@ -32,7 +32,7 @@ table.circle_output td {
 	width: 150px;
 }
 </style>
-<script src="https://ajax.googleapis.com/ajax/libs/mootools/1.3.2/mootools.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/mootools/1.4.5/mootools.js"></script>
 <script src="Base64.js"></script>
 <script src="range-polyfill.js"></script>
 <script src="number-polyfill.js"></script>
@@ -156,6 +156,8 @@ window.addEvent('domready', function(){
 			for(var iy = 0; iy < _svg_height; iy += _dfull) {
 				text += '<rect x="0" y="'+(iy + (_dwidth / 2))+'" fill="#bbbbbb" width="'+_svg_width+'" opacity=".6" height="'+_dborder+'"/>';
 			}
+
+			text += '<line id="selection_line" x1="0" y1="0" x2="200" y2="200" style="stroke:rgb(255,0,0);stroke-width:2">';
 
 			text += '</svg>';
 
@@ -309,7 +311,167 @@ window.addEvent('domready', function(){
 	scaler.addEvent('change', rescale);
 
 	draw();
+
+	var selection_line = $('selection_line');
+
+	$('result').addEvent('mouseover:relay(svg)', function(evt,elm){
+		var pos = elm.getPosition();
+
+		var size = elm.getSize();
+
+		var xxx = Math.max(elm.getBBox().width, elm.getBBox().height) / Math.max(size.x, size.y);
+		
+
+		selection_line.set( 'x1', (evt.page.x - pos.x) * xxx );
+		selection_line.set( 'y1', (evt.page.y - pos.y) * xxx );
+		// this.
+	});
+
 });
+
+
+(function(){
+
+var getStylesList = function(styles, planes){
+	var list = [];
+	Object.each(planes, function(directions){
+		Object.each(directions, function(edge){
+			styles.each(function(style){
+				list.push(style + '-' + edge + (style == 'border' ? '-width' : ''));
+			});
+		});
+	});
+	return list;
+};
+
+var calculateEdgeSize = function(edge, styles){
+	var total = 0;
+	Object.each(styles, function(value, style){
+		if (style.test(edge)) total = total + value.toInt();
+	});
+	return total;
+};
+
+var isVisible = function(el){
+	return !!(!el || el.offsetHeight || el.offsetWidth);
+};
+
+
+Element.implement({
+
+	measure: function(fn){
+		if (isVisible(this)) return fn.call(this);
+		var parent = this.getParent(),
+			toMeasure = [];
+		while (!isVisible(parent) && parent != document.body){
+			toMeasure.push(parent.expose());
+			parent = parent.getParent();
+		}
+		var restore = this.expose(),
+			result = fn.call(this);
+		restore();
+		toMeasure.each(function(restore){
+			restore();
+		});
+		return result;
+	},
+
+	expose: function(){
+		if (this.getStyle('display') != 'none') return function(){};
+		var before = this.style.cssText;
+		this.setStyles({
+			display: 'block',
+			position: 'absolute',
+			visibility: 'hidden'
+		});
+		return function(){
+			this.style.cssText = before;
+		}.bind(this);
+	},
+
+	getDimensions: function(options){
+		options = Object.merge({computeSize: false}, options);
+		var dim = {x: 0, y: 0};
+
+		var getSize = function(el, options){
+			return (options.computeSize) ? el.getComputedSize(options) : el.getSize();
+		};
+
+		var parent = this.getParent('body');
+
+		if (parent && this.getStyle('display') == 'none'){
+			dim = this.measure(function(){
+				return getSize(this, options);
+			});
+		} else if (parent){
+			try { //safari sometimes crashes here, so catch it
+				dim = getSize(this, options);
+			}catch(e){}
+		}
+
+		return Object.append(dim, (dim.x || dim.x === 0) ? {
+				width: dim.x,
+				height: dim.y
+			} : {
+				x: dim.width,
+				y: dim.height
+			}
+		);
+	},
+
+	getComputedSize: function(options){
+		
+
+		options = Object.merge({
+			styles: ['padding','border'],
+			planes: {
+				height: ['top','bottom'],
+				width: ['left','right']
+			},
+			mode: 'both'
+		}, options);
+
+		var styles = {},
+			size = {width: 0, height: 0},
+			dimensions;
+
+		if (options.mode == 'vertical'){
+			delete size.width;
+			delete options.planes.width;
+		} else if (options.mode == 'horizontal'){
+			delete size.height;
+			delete options.planes.height;
+		}
+
+		getStylesList(options.styles, options.planes).each(function(style){
+			styles[style] = this.getStyle(style).toInt();
+		}, this);
+
+		Object.each(options.planes, function(edges, plane){
+
+			var capitalized = plane.capitalize(),
+				style = this.getStyle(plane);
+
+			if (style == 'auto' && !dimensions) dimensions = this.getDimensions();
+
+			style = styles[plane] = (style == 'auto') ? dimensions[plane] : style.toInt();
+			size['total' + capitalized] = style;
+
+			edges.each(function(edge){
+				var edgesize = calculateEdgeSize(edge, styles);
+				size['computed' + edge.capitalize()] = edgesize;
+				size['total' + capitalized] += edgesize;
+			});
+
+		}, this);
+
+		return Object.append(size, styles);
+	}
+
+});
+
+})();
+
 
 </script>
 </head>
