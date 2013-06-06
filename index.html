@@ -145,7 +145,7 @@ window.addEvent('domready', function(){
 
 		this.render = function(){
 			var text = '';
-			text += '<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" width="'+_svg_width+'px" height="'+_svg_height+'px" viewBox="0 0 '+_svg_width+' '+_svg_height+'">';
+			text += '<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="'+_svg_width+'" data-h="'+_svg_height+'" width="'+_svg_width+'px" height="'+_svg_height+'px" viewBox="0 0 '+_svg_width+' '+_svg_height+'">';
 			text += _inner_content;
 			
 
@@ -169,8 +169,12 @@ window.addEvent('domready', function(){
 
 		this.scale = function(scale){
 			var svgc = $$('#svg_circle');
+			var aspect = svgc.get('data-h') / svgc.get('data-w');
 
-			svgc.set('width', scale + 'px').set({'width': scale + 'px','height': scale + 'px'}).setStyles({'width': scale,'height': scale});
+			var scaleX = scale;
+			var scaleY = scale * aspect;
+
+			svgc.set('width', scale + 'px').set({'width': scaleX + 'px','height': scaleY + 'px'}).setStyles({'width': scaleX,'height': scaleY});
 		};
 	}
 
