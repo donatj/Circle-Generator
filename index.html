@@ -157,7 +157,7 @@ window.addEvent('domready', function(){
 				text += '<rect x="0" y="'+(iy + (_dwidth / 2))+'" fill="#bbbbbb" width="'+_svg_width+'" opacity=".6" height="'+_dborder+'"/>';
 			}
 
-			text += '<line id="selection_line" x1="0" y1="0" x2="200" y2="200" style="stroke:rgb(255,0,0);stroke-width:2">';
+			text += '<line id="selection_line" x1="0" y1="0" x2="0" y2="0" style="stroke:rgb(0,255,0);" stroke-width="3" stroke-linecap="round" opacity="0">';
 
 			text += '</svg>';
 
@@ -316,19 +316,35 @@ window.addEvent('domready', function(){
 
 	draw();
 
-	var selection_line = $('selection_line');
+	// function translateSvgSize(elm)
 
-	$('result').addEvent('mousemove:relay(svg)', function(evt,elm){
-		var pos = elm.getPosition();
+	
+
+	$$('html').addEvent('mousemove:relay(svg)', function(evt,elm){
+		var selection_line = $('selection_line');
 
 		var size = elm.getSize();
-
 		var xxx = Math.max(elm.getBBox().width, elm.getBBox().height) / Math.max(size.x, size.y);
 		
+		selection_line.set( 'x1', evt.event.offsetX * xxx);
+		selection_line.set( 'y1', evt.event.offsetY * xxx);
+	});
 
-		selection_line.set( 'x1', (evt.page.x - pos.x) * xxx );
-		selection_line.set( 'y1', (evt.page.y - pos.y) * xxx );
-		// this.
+	$$('html').addEvent('mousedown:relay(svg)', function(evt,elm){
+		var selection_line = $('selection_line');
+		selection_line.set('opacity', .6);
+
+		var size = elm.getSize();
+		var xxx = Math.max(elm.getBBox().width, elm.getBBox().height) / Math.max(size.x, size.y);
+		
+		selection_line.set( 'x2', evt.event.offsetX * xxx);
+		selection_line.set( 'y2', evt.event.offsetY * xxx);
+
+	});
+
+	$$('html').addEvent('mouseup:relay(svg)', function(evt,elm){
+		var selection_line = $('selection_line');
+		selection_line.set('opacity', 0);
 	});
 
 });
