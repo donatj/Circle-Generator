@@ -314,7 +314,7 @@ window.addEvent('domready', function(){
 
 	var selection_line = $('selection_line');
 
-	$('result').addEvent('mouseover:relay(svg)', function(evt,elm){
+	$('result').addEvent('mousemove:relay(svg)', function(evt,elm){
 		var pos = elm.getPosition();
 
 		var size = elm.getSize();
