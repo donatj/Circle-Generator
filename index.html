@@ -339,7 +339,8 @@ window.addEvent('domready', function(){
 		
 		selection_line.set( 'x2', evt.event.offsetX * xxx);
 		selection_line.set( 'y2', evt.event.offsetY * xxx);
-
+		
+		evt.preventDefault();
 	});
 
 	$$('html').addEvent('mouseup:relay(svg)', function(evt,elm){
