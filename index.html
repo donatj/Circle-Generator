@@ -53,11 +53,11 @@ window.addEvent('domready', function(){
 	if( !!window.location.hash || (!!window.localStorage && !!window.localStorage.CircleHash) ) {
 		try{
 			var hashval = {};
-			
+
 			if( !!window.location.hash ) {
-				var hashval = JSON.decode( window.location.hash.replace(/^[# ]+/g, "").decodeBase64() );
+				hashval = JSON.decode( window.location.hash.replace(/^[# ]+/g, "").decodeBase64() );
 			}else{
-				var hashval = JSON.decode( window.localStorage.CircleHash );
+				hashval = JSON.decode( window.localStorage.CircleHash );
 			}
 			dia.set('value',        Math.max( hashval.width,  1) );
 			height.set('value',     Math.max( hashval.height, 1) );
@@ -67,7 +67,7 @@ window.addEvent('domready', function(){
 		}catch(err){
 			if( console && console.log ) console.log(err);
 		}
-		
+
 	}
 
 	var distance = function(x, y, ratio) {
@@ -79,7 +79,7 @@ window.addEvent('domready', function(){
 	};
 
 	var fatfilled = function(x, y, radius, ratio) {
-		return filled(x, y, radius, ratio) && !( 
+		return filled(x, y, radius, ratio) && !(
 			filled(x + 1, y, radius, ratio) &&
 			filled(x - 1, y, radius, ratio) &&
 			filled(x, y + 1, radius, ratio) &&
@@ -147,7 +147,7 @@ window.addEvent('domready', function(){
 			var text = '';
 			text += '<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="'+_svg_width+'" data-h="'+_svg_height+'" width="'+_svg_width+'px" height="'+_svg_height+'px" viewBox="0 0 '+_svg_width+' '+_svg_height+'">';
 			text += _inner_content;
-			
+
 
 			for(var ix = 0; ix < _svg_width; ix += _dfull) {
 				text += '<rect x="'+(ix + (_dwidth / 2))+'" y="0" fill="#bbbbbb" width="'+_dborder+'" height="'+_svg_height+'" opacity=".4" />';
@@ -164,7 +164,7 @@ window.addEvent('domready', function(){
 			}else{
 				return '<img id="svg_circle" src="data:image/svg+xml;base64,' + text.toBase64() + '">';
 			}
-			
+
 		};
 
 		this.scale = function(scale){
@@ -180,7 +180,7 @@ window.addEvent('domready', function(){
 
 	var Table_renderer = function() {
 		var _row_data = {};
-		var _max_y;
+		var _max_x, _max_y;
 
 		this.init = function(max_x, max_y){
 			_max_x = max_x;
@@ -198,7 +198,7 @@ window.addEvent('domready', function(){
 			var text = '';
 			text += '<table class="circle_output">';
 
-			for( row in _row_data ) {
+			for( var row in _row_data ) {
 				if( _row_data.hasOwnProperty(row) ) {
 					text += '<tr>'+ _row_data[row] +'</tr>';
 				}
@@ -212,7 +212,7 @@ window.addEvent('domready', function(){
 
 		this.scale = function(scale){
 			var tdwidth = scale / _max_x;
-			$$('table.circle_output td').setStyles({'width': tdwidth,'height': tdwidth}); 
+			$$('table.circle_output td').setStyles({'width': tdwidth,'height': tdwidth});
 		};
 	};
 
@@ -223,8 +223,8 @@ window.addEvent('domready', function(){
 
 	var draw = function(){
 		var thick_t = thickness.get('value');
-		var width_r = parseFloat(dia.value, 10) / 2;
-		var height_r = parseFloat(height.value, 10) / 2;
+		var width_r = parseFloat(dia.value) / 2;
+		var height_r = parseFloat(height.value) / 2;
 		var ratio = width_r / height_r;
 
 		var maxblocks_x, maxblocks_y;
@@ -234,19 +234,19 @@ window.addEvent('domready', function(){
 		if ( (width_r * 2) % 2 == 0 ) {
 			maxblocks_x = Math.ceil(width_r - .5) * 2 + 1;
 		} else {
-			maxblocks_x = Math.ceil(width_r) * 2;	
+			maxblocks_x = Math.ceil(width_r) * 2;
 		}
 
 		if ( (height_r * 2) % 2 == 0 ) {
 			maxblocks_y = Math.ceil(height_r - .5) * 2 + 1;
 		} else {
-			maxblocks_y = Math.ceil(height_r) * 2;	
+			maxblocks_y = Math.ceil(height_r) * 2;
 		}
 
 		renderer.init( maxblocks_x, maxblocks_y );
 		var hash = JSON.encode({
-			width:     width_r * 2, 
-			height:    height_r * 2, 
+			width:     width_r * 2,
+			height:    height_r * 2,
 			thickness: thick_t,
 			scaler:    scaler.get('value')
 		});
@@ -260,7 +260,7 @@ window.addEvent('domready', function(){
 
 			window.location.hash = hash.toBase64();
 		}, 1000);
-		
+
 		if( resultblock.get('data-hash') != hash ) {
 
 			for (var y = -maxblocks_y / 2 + 1; y <= maxblocks_y / 2 - 1; y++) {
@@ -270,7 +270,7 @@ window.addEvent('domready', function(){
 					if( thick_t == 'thick' ) {
 						xfilled = fatfilled(x, y, width_r, ratio);
 					}else if( thick_t == 'thin' ){
-						xfilled = fatfilled(x, y, width_r, ratio) && 
+						xfilled = fatfilled(x, y, width_r, ratio) &&
 							!(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio));
 
 					}else{
@@ -282,7 +282,7 @@ window.addEvent('domready', function(){
 					renderer.add( x, y, xfilled );
 				}
 			}
-			
+
 			resultblock.set('data-hash', hash);
 			resultblock.innerHTML = renderer.render();
 			blockcount.set('html', ifilled);
@@ -320,13 +320,13 @@ window.addEvent('domready', function(){
 
 <body>
 <noscript><strong>Circle generator requires JavaScript to be turned on!</strong><br /></noscript>
-Width : 
+Width :
 <input tabindex="1" type="number" size="5" id="diameter" value="9" autocomplete="off" autofocus="autofocus">
 <label><input id="linked" type="checkbox" checked="checked" value="1" /> Force Circle</label>
 &mdash;
 Block Count: <span id="blockcount"></span><br />
 Height:
-<input tabindex="2" type="number" size="5" id="height" value="9" autocomplete="off" autofocus="autofocus"> 
+<input tabindex="2" type="number" size="5" id="height" value="9" autocomplete="off" autofocus="autofocus">
 <select id="thickness"><option selected="selected">thick</option><option>thin</option><option>filled</option></select>
 <br />
 Scale :
