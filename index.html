@@ -40,6 +40,44 @@
 <script>
 window.addEvent('domready', function() {
 
+	/**
+	 * @param element
+	 * @returns {{x: number, y: number}}
+	 */
+	var getSize = function( element ) {
+		var size = element.getSize();
+
+		if( !size || !size.x || !size.y ) {
+			size = {
+				x: parseInt(element.get('width'), 10),
+				y: parseInt(element.get('height'), 10)
+			};
+		}
+
+		return size;
+	}
+
+	/**
+	 * @param evt Event
+	 * @param el Element
+	 * @returns {{x: number, y: number}}
+	 */
+	function getOffset( evt, el ) {
+		var
+				x = 0,
+				y = 0;
+
+		if( position = el.getPosition() ) {
+			x = position.x;
+			y = position.y;
+		}
+
+		x = evt.clientX - x;
+		y = evt.clientY - y;
+
+		return { x: x, y: y };
+	}
+
 	//inputs
 	var dia = $('diameter'),
 			height = $('height'),
@@ -142,7 +180,7 @@ window.addEvent('domready', function() {
 			}
 
 			if( color !== false ) {
-				_inner_content += '<rect x="' + xp + '" y="' + yp + '" fill="' + color + '" width="' + _dwidth + '" height="' + _dwidth + '"/>';
+				_inner_content += '<rect x="' + xp + '" y="' + yp + '" fill="' + color + '" width="' + _dwidth + '" height="' + _dwidth + '" class="' + ( filled ? 'filled' : '') + '"/>';
 			}
 		};
 
@@ -320,40 +358,43 @@ window.addEvent('domready', function() {
 
 	draw();
 
-	// function translateSvgSize(elm)
-
-	
-
-	$$('html').addEvent('mousemove:relay(svg)', function(evt,elm){
-		var selection_line = $('selection_line');
-
-		var size = elm.getSize();
+	var selection_line = $('selection_line');
+	// var moveMouseLine = false;
+	$$('html').addEvent('mousemove:relay(svg)', function( evt, elm ) {
+		// if(moveMouseLine) {
+		var offset = getOffset(evt.event, $$('#svg_circle')[0]);
+		var size = getSize(elm);
 		var xxx = Math.max(elm.getBBox().width, elm.getBBox().height) / Math.max(size.x, size.y);
-		
-		selection_line.set( 'x1', evt.event.offsetX * xxx);
-		selection_line.set( 'y1', evt.event.offsetY * xxx);
+
+		selection_line.set('x1', offset.x * xxx);
+		selection_line.set('y1', offset.y * xxx);
+		// }
 	});
 
-	$$('html').addEvent('mousedown:relay(svg)', function(evt,elm){
-		var selection_line = $('selection_line');
+	$$('html').addEvent('mousedown:relay(svg)', function( evt, elm ) {
 		selection_line.set('opacity', .6);
 
-		var size = elm.getSize();
+		var offset = getOffset(evt.event, $$('#svg_circle')[0]);
+		var size = getSize(elm);
 		var xxx = Math.max(elm.getBBox().width, elm.getBBox().height) / Math.max(size.x, size.y);
-		
-		selection_line.set( 'x2', evt.event.offsetX * xxx);
-		selection_line.set( 'y2', evt.event.offsetY * xxx);
-		
+
+		selection_line.set('x2', offset.x * xxx);
+		selection_line.set('y2', offset.y * xxx);
+
 		evt.preventDefault();
 	});
 
-	$$('html').addEvent('mouseup:relay(svg)', function(evt,elm){
-		var selection_line = $('selection_line');
+	$$('html').addEvent('mouseup:relay(svg)', function( evt, elm ) {
+
 		selection_line.set('opacity', 0);
+		evt.preventDefault();
+
+		$$('rect.filled').filter(function( e ) {
+			return parseInt(e.get('x'), 10) > parseInt(selection_line.get('x2'), 10) && parseInt(e.get('x'), 10) < parseInt(selection_line.get('x1'), 10) && parseInt(e.get('y'), 10) > parseInt(selection_line.get('y2'), 10) && parseInt(e.get('y'), 10) < parseInt(selection_line.get('y1'), 10);
+		}).set('fill', '#0000FF');
 	});
 
 });
-
 
 
 </script>
