@@ -1,7 +1,7 @@
 /**
  * Created by jdonat on 5/28/14.
  */
-if(typeof Renderer == "undefined") {
+if( typeof Renderer == "undefined" ) {
 	Renderer = {};
 }
 
@@ -90,6 +90,9 @@ Renderer.Svg = function() {
 		var scaleX = scale;
 		var scaleY = scale * aspect;
 
-		svgc.set('width', scale + 'px').set({'width': scaleX + 'px', 'height': scaleY + 'px'}).setStyles({'width': scaleX, 'height': scaleY});
+		svgc.set('width', scale + 'px').set({
+			'width' : scaleX + 'px',
+			'height': scaleY + 'px'
+		}).setStyles({'width': scaleX, 'height': scaleY});
 	};
 };
