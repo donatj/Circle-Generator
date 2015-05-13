@@ -37,21 +37,25 @@
 <script src="Base64.js"></script>
 <script src="range-polyfill.js"></script>
 <script src="number-polyfill.js"></script>
-<script src="renderers/Svg.js"></script>
-<script src="renderers/Table.js"></script>
+<script src="renderers/svg.js"></script>
+<script src="renderers/table.js"></script>
+<script src="FileSaver.js"></script>
+<script src="Blob.js"></script>
 <script>
 window.addEvent('domready', function() {
+	"use strict";
 
 	//inputs
-	var dia = $('diameter'),
-			height = $('height'),
-			scaler = $('scaler'),
-			linked = $('linked'),
-			thickness = $('thickness');
+	var dia       = $('diameter'),
+		height    = $('height'),
+		scaler    = $('scaler'),
+		linked    = $('linked'),
+		thickness = $('thickness'),
+		download  = $('download');
 
 	//outputs
 	var resultblock = $('result'),
-			blockcount = $('blockcount');
+		blockcount  = $('blockcount');
 
 	if( !!window.location.hash || (!!window.localStorage && !!window.localStorage.CircleHash) ) {
 		try {
@@ -96,11 +100,13 @@ window.addEvent('domready', function() {
 				);
 	};
 
-//	var Svg_renderer
-//	var Table_renderer
+	var hasSvg = document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1");
+	var renderer = hasSvg ? new Renderer.Svg() : new Renderer.Table();
 
-
-	var renderer = document.implementation.hasFeature("http://www.w3.org/TR/SVG11/feature#BasicStructure", "1.1") ? new Renderer.Svg() : new Renderer.Table();
+	if( !hasSvg ) {
+		download.setAttribute('disabled', 'disabled');
+		download.innerHTML = 'Download disabled - need newer browser!';
+	}
 
 	var hashTimeout = false;
 
@@ -187,12 +193,16 @@ window.addEvent('domready', function() {
 				height.set('value', diameter.get('value'));
 			}
 		}
-	}
+	};
 
 	$$(dia, height).addEvent('keyup', numcleanup).addEvent('change', numcleanup);
 	$$(dia, height, linked, thickness).addEvent('keyup', draw).addEvent('change', draw);
 
 	scaler.addEvent('change', rescale);
+
+	download.addEvent('click', function() {
+		saveAs(new Blob([resultblock.innerHTML]), "Circle-" + diameter.get('value') + "x" + height.get('value') + "-" + (+new Date()) + "-output.svg");
+	});
 
 	draw();
 });
@@ -214,6 +224,7 @@ Height:
 	<option>thin</option>
 	<option>filled</option>
 </select>
+<button type="button" id="download">Download SVG</button>
 <br />
 Scale :
 <input type="range" min="50" max="3000" value="720" id="scaler" data-poly-scale=".1" />
