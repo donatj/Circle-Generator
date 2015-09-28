@@ -55,7 +55,8 @@ window.addEvent('domready', function() {
 
 	//outputs
 	var resultblock = $('result'),
-		blockcount  = $('blockcount');
+		blockcount  = $('blockcount'),
+		stackcount  = $('stackcount');
 
 	if( !!window.location.hash || (!!window.localStorage && !!window.localStorage.CircleHash) ) {
 		try {
@@ -174,6 +175,7 @@ window.addEvent('domready', function() {
 			resultblock.set('data-hash', hash);
 			resultblock.innerHTML = renderer.render();
 			blockcount.set('html', ifilled);
+			stackcount.set('html', ifilled / 64);
 		}
 
 		rescale();
@@ -216,7 +218,7 @@ Width :
 <input tabindex="1" type="number" size="5" id="diameter" value="9" autocomplete="off" autofocus="autofocus">
 <label><input id="linked" type="checkbox" checked="checked" value="1" /> Force Circle</label>
 &mdash;
-Block Count: <span id="blockcount"></span><br />
+Block Count: <span id="blockcount"></span> Stack Count: <span id="stackcount"></span><span id="stackcount"></span><br />
 Height:
 <input tabindex="2" type="number" size="5" id="height" value="9" autocomplete="off" autofocus="autofocus">
 <select id="thickness">
