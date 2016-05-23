@@ -21,7 +21,7 @@ Renderer.Svg = function() {
 		var div = document.createElement('div');
 		div.innerHTML = '<svg/>';
 		return (div.firstChild && div.firstChild.namespaceURI) == 'http://www.w3.org/2000/svg';
-	}
+	};
 
 	this.init = function( max_x, max_y ) {
 		_max_x = max_x;
