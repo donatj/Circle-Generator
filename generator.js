@@ -47,16 +47,16 @@ window.addEvent('domready', function() {
 			var dist = distance(x, y, ratio);
 			return (dist <= radius && dist >= radius - border);
 		},
-		fatfilled = function( x, y, radius, ratio, border ) {
+		fatfilled = function( x, y, radius, ratio ) {
 			return filled(x, y, radius, ratio) && !(
-				   filled(x + border, y, radius, ratio) &&
-				   filled(x - border, y, radius, ratio) &&
-				   filled(x, y + border, radius, ratio) &&
-				   filled(x, y - border, radius, ratio) &&
-				   filled(x + border, y + border, radius, ratio) &&
-				   filled(x + border, y - border, radius, ratio) &&
-				   filled(x - border, y - border, radius, ratio) &&
-				   filled(x - border, y + border, radius, ratio)
+				   filled(x + 1, y, radius, ratio) &&
+				   filled(x - 1, y, radius, ratio) &&
+				   filled(x, y + 1, radius, ratio) &&
+				   filled(x, y - 1, radius, ratio) &&
+				   filled(x + 1, y + 1, radius, ratio) &&
+				   filled(x + 1, y - 1, radius, ratio) &&
+				   filled(x - 1, y - 1, radius, ratio) &&
+				   filled(x - 1, y + 1, radius, ratio)
 				);
 		};
 
@@ -120,9 +120,10 @@ window.addEvent('domready', function() {
 
 					if( thick_t == 'bordered' ) {
 						xfilled = borderfilled(x, y, width_r, ratio, border_t);
+					} else if( thick_t == 'thick' ) {
+						xfilled = fatfilled(x, y, width_r, ratio);
 					} else if( thick_t == 'thin' ) {
-						xfilled = fatfilled(x, y, width_r, ratio, 1) && !(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio, 1) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio, 1));
-
+						xfilled = fatfilled(x, y, width_r, ratio) && !(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio));
 					} else {
 						xfilled = filled(x, y, width_r, ratio);
 					}
