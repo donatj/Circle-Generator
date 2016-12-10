@@ -3,6 +3,7 @@
 <head>
 <style type="text/css">
 	body {
+		background:#eeeeee;
 		font-size: 11px;
 		font-family: monospace;
 	}
@@ -29,8 +30,15 @@
 		background: #808080;
 	}
 
-	#height, #diameter, #scaler {
-		width: 150px;
+	#height, #diameter {
+		width:50px;
+	}
+	
+	#scaler {
+		width: 400px;
+	}
+	#border {
+		width:45px;
 	}
 </style>
 <script src="https://ajax.googleapis.com/ajax/libs/mootools/1.3.2/mootools.js"></script>
@@ -54,10 +62,10 @@ Block Count: <span id="blockcount"></span><br />
 Height:
 <input tabindex="2" type="number" size="5" id="height" value="9" autocomplete="off" autofocus="autofocus">
 <select id="thickness">
-	<option selected="selected">thick</option>
+	<option selected="selected">bordered</option>
 	<option>thin</option>
 	<option>filled</option>
-</select>
+</select> Border Thickness <input type="number" id="border" value="1" min="1" max="100" />
 
 Download:
 <button type="button" id="downloadSVG">SVG</button>

@@ -8,7 +8,8 @@ window.addEvent('domready', function() {
 		linked      = $('linked'),
 		thickness   = $('thickness'),
 		downloadSVG = $('downloadSVG'),
-		downloadPNG = $('downloadPNG');
+		downloadPNG = $('downloadPNG'),
+		border		= $('border');
 
 	//outputs
 	var resultblock = $('result'),
@@ -42,16 +43,20 @@ window.addEvent('domready', function() {
 		filled    = function( x, y, radius, ratio ) {
 			return distance(x, y, ratio) <= radius;
 		},
-		fatfilled = function( x, y, radius, ratio ) {
+		borderfilled = function( x, y, radius, ratio, border ) {
+			var dist = distance(x, y, ratio);
+			return (dist <= radius && dist >= radius - border);
+		},
+		fatfilled = function( x, y, radius, ratio, border ) {
 			return filled(x, y, radius, ratio) && !(
-				   filled(x + 1, y, radius, ratio) &&
-				   filled(x - 1, y, radius, ratio) &&
-				   filled(x, y + 1, radius, ratio) &&
-				   filled(x, y - 1, radius, ratio) &&
-				   filled(x + 1, y + 1, radius, ratio) &&
-				   filled(x + 1, y - 1, radius, ratio) &&
-				   filled(x - 1, y - 1, radius, ratio) &&
-				   filled(x - 1, y + 1, radius, ratio)
+				   filled(x + border, y, radius, ratio) &&
+				   filled(x - border, y, radius, ratio) &&
+				   filled(x, y + border, radius, ratio) &&
+				   filled(x, y - border, radius, ratio) &&
+				   filled(x + border, y + border, radius, ratio) &&
+				   filled(x + border, y - border, radius, ratio) &&
+				   filled(x - border, y - border, radius, ratio) &&
+				   filled(x - border, y + border, radius, ratio)
 				);
 		};
 
@@ -70,6 +75,7 @@ window.addEvent('domready', function() {
 		var width_r = parseFloat(dia.value) / 2;
 		var height_r = parseFloat(height.value) / 2;
 		var ratio = width_r / height_r;
+		var border_t = parseInt(border.value);
 
 		var maxblocks_x, maxblocks_y;
 		//var text = '';
@@ -92,7 +98,8 @@ window.addEvent('domready', function() {
 			width    : width_r * 2,
 			height   : height_r * 2,
 			thickness: thick_t,
-			scaler   : scaler.get('value')
+			scaler   : scaler.get('value'),
+			border	 : border_t
 		});
 
 		//setting it every time was slow, pause a second and then set it
@@ -111,10 +118,10 @@ window.addEvent('domready', function() {
 				for( var x = -maxblocks_x / 2 + 1; x <= maxblocks_x / 2 - 1; x++ ) {
 					var xfilled;
 
-					if( thick_t == 'thick' ) {
-						xfilled = fatfilled(x, y, width_r, ratio);
+					if( thick_t == 'bordered' ) {
+						xfilled = borderfilled(x, y, width_r, ratio, border_t);
 					} else if( thick_t == 'thin' ) {
-						xfilled = fatfilled(x, y, width_r, ratio) && !(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio));
+						xfilled = fatfilled(x, y, width_r, ratio, 1) && !(fatfilled(x + (x > 0 ? 1 : -1), y, width_r, ratio, 1) && fatfilled(x, y + (y > 0 ? 1 : -1), width_r, ratio, 1));
 
 					} else {
 						xfilled = filled(x, y, width_r, ratio);
@@ -151,7 +158,7 @@ window.addEvent('domready', function() {
 	};
 
 	$$(dia, height).addEvent('keyup', numcleanup).addEvent('change', numcleanup);
-	$$(dia, height, linked, thickness).addEvent('keyup', draw).addEvent('change', draw);
+	$$(dia, height, linked, thickness, border).addEvent('keyup', draw).addEvent('change', draw);
 
 	scaler.addEvent('change', rescale);
 
