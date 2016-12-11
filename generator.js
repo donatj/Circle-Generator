@@ -134,9 +134,12 @@ window.addEvent('domready', function() {
 				}
 			}
 
+			var stacks = Math.floor(ifilled / 64);
+			var remaining = ifilled - (stacks * 64);
+			
 			resultblock.set('data-hash', hash);
 			resultblock.innerHTML = renderer.render();
-			blockcount.set('html', ifilled);
+			blockcount.set('html', ifilled + ' (' + stacks + ' stacks + ' + remaining + ' blocks)');
 		}
 
 		rescale();
