@@ -145,7 +145,7 @@ window.addEvent('domready', function() {
 			if( this.get('id') == height.get('id') ) {
 				dia.set('value', height.get('value'));
 			} else {
-				height.set('value', diameter.get('value'));
+				height.set('value', dia.get('value'));
 			}
 		}
 	};
@@ -171,7 +171,7 @@ window.addEvent('domready', function() {
 			canvasHandler(canvas);
 		}
 	}, getDownloadName = function( ext ) {
-		return "Circle-" + diameter.get('value') + "x" + height.get('value') + "-" + (+new Date()) + "-output." + ext;
+		return "Circle-" + dia.get('value') + "x" + height.get('value') + "-" + (+new Date()) + "-output." + ext;
 	};
 
 	downloadSVG.addEvent('click', function() {
