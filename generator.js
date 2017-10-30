@@ -162,10 +162,10 @@ window.addEvent('domready', function() {
 		var img = document.createElement("img");
 		img.setAttribute("src", "data:image/svg+xml;base64," + btoa(svgData));
 
-		canvas.width = img.width;
-		canvas.height = img.height;
-
 		img.onload = function() {
+			canvas.width = img.width;
+			canvas.height = img.height;
+			
 			ctx.drawImage(img, 0, 0);
 
 			canvasHandler(canvas);
