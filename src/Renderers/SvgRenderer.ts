@@ -10,10 +10,16 @@ namespace Renderers {
 		private _dborder = 1;
 		private _dfull = this._dwidth + this._dborder;
 
-		public constructor(private _max_x: number, private _max_y: number) {
-			this._svg_width = this._dfull * _max_x;
-			this._svg_height = this._dfull * _max_y;
-			this._inner_content = '';
+		// public constructor(private _max_x: number, private _max_y: number) {
+		// 	this._svg_width = this._dfull * _max_x;
+		// 	this._svg_height = this._dfull * _max_y;
+		// 	this._inner_content = '';
+		// } 
+
+		private generator: Generators.GeneratorInterface2D | null = null;
+
+		public setGenerator(generator: Generators.GeneratorInterface2D) {
+			this.generator = generator;
 		}
 
 		private hasInlineSvg() {
@@ -22,20 +28,22 @@ namespace Renderers {
 			return (div.firstChild && div.firstChild.namespaceURI) == 'http://www.w3.org/2000/svg';
 		};
 
-		public add(x: number, y: number, filled: boolean) {
-
-			var xp = ((x * this._dfull) + (this._svg_width / 2) - (this._dfull / 2)) + .5;
-			var yp = ((y * this._dfull) + (this._svg_height / 2) - (this._dfull / 2)) + .5;
+		private add(x: number, y: number, width: number, height: number, filled: boolean) {
+			var xp = ((x * this._dfull) /*+ (this._svg_width / 2)*/ - (this._dfull / 2)) + .5;
+			var yp = ((y * this._dfull) /*+ (this._svg_height / 2)*/ - (this._dfull / 2)) + .5;
 
 			let color: string | null = null;
 
+			let midx = (width / 2) - .5;
+			let midy = (height / 2) - .5;
+
 			if (filled) {
-				if (x == 0 || y == 0) {
+				if (x == midx || y == midy) {
 					color = '#808080';
 				} else {
 					color = '#FF0000';
 				}
-			} else if (x == 0 || y == 0) {
+			} else if (x == midx || y == midy) {
 				if (x & 1 || y & 1) {
 					color = '#EEEEEE';
 				} else {
@@ -44,11 +52,23 @@ namespace Renderers {
 			}
 
 			if (color) {
-				this._inner_content += '<rect x="' + xp + '" y="' + yp + '" fill="' + color + '" width="' + this._dwidth + '" height="' + this._dwidth + '" class="' + (filled ? 'filled' : '') + '"/>';
+				let fillstr = (filled ? 'filled' : '');
+				this._inner_content += `<rect x="${xp}" y="${yp}" fill="${color}" width="${this._dwidth}" height="${this._dwidth}" class="${fillstr}"/>`;
 			}
 		};
 
-		public render() {
+		render(width: number, height: number, target: HTMLElement): void {
+			this._svg_width = this._dfull * width;
+			this._svg_height = this._dfull * height;
+
+			if (this.generator) {
+				for (let y = 0; y < height; y++) {
+					for (let x = 0; x < width; x++) {
+						this.add(x, y, width, height, this.generator.isFilled(x, y));
+					}
+				}
+			}
+
 			var text = '';
 			text += '<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="' + this._svg_width + '" data-h="' + this._svg_height + '" width="' + this._svg_width + 'px" height="' + this._svg_height + 'px" viewBox="0 0 ' + this._svg_width + ' ' + this._svg_height + '">';
 			text += this._inner_content;
@@ -67,11 +87,10 @@ namespace Renderers {
 			text += '</svg>';
 
 			if (this.hasInlineSvg()) {
-				return text;
+				target.innerHTML = text;
 			} else {
-				return '<img id="svg_circle" src="data:image/svg+xml;base64,' + btoa(text) + '">';
+				target.innerHTML = '<img id="svg_circle" src="data:image/svg+xml;base64,' + btoa(text) + '">';
 			}
-
 		};
 
 		public setScale(scale: number) {

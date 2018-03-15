@@ -6,6 +6,8 @@ namespace Renderers {
 
 		render(width: number, height: number, target : HTMLElement) : void;
 
+		setGenerator(generator: Generators.GeneratorInterface2D) : void;
+
 		// setScale(scale: number): void;
 
 		// constructor( max_x: number, max_y : number ) : void;

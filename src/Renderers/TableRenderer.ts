@@ -1,5 +1,5 @@
 namespace Renderers {
-
+/*
 	export class TableRenderer implements RendererInterface {
 
 		private _row_data: { [x: number]: string } = {};
@@ -46,5 +46,5 @@ namespace Renderers {
 		};
 
 	}
-
+*/
 }
