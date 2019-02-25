@@ -30,8 +30,8 @@ export class SvgRenderer implements RendererInterface {
 	}
 
 	private add(x: number, y: number, width: number, height: number, filled: boolean) {
-		const xp = ((x * this._dfull) /*+ (this._svg_width / 2)*/ - (this._dfull / 2)) + .5;
-		const yp = ((y * this._dfull) /*+ (this._svg_height / 2)*/ - (this._dfull / 2)) + .5;
+		const xp = (((x+1) * this._dfull) /*+ (this._svg_width / 2)*/ - (this._dfull / 2)) + .5;
+		const yp = (((y+1) * this._dfull) /*+ (this._svg_height / 2)*/ - (this._dfull / 2)) + .5;
 
 		let color: string | null = null;
 
@@ -59,8 +59,8 @@ export class SvgRenderer implements RendererInterface {
 	}
 
 	public render(width: number, height: number, target: HTMLElement): void {
-		this._svg_width = this._dfull * width;
-		this._svg_height = this._dfull * height;
+		this._svg_width = this._dfull * (width + 1);
+		this._svg_height = this._dfull * (height + 1);
 
 		if (this.generator) {
 			for (let y = 0; y < height; y++) {
