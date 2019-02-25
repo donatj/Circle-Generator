@@ -17,7 +17,7 @@ namespace Renderers {
 
 			for (let y = 0; y < height; y++) {
 				for (let x = 0; x < width; x++) {
-					let filled = this.generator.isFilled(x, y);
+					const filled = this.generator.isFilled(x, y);
 					target.innerHTML += filled ? 'x' : '.';
 				}
 				target.innerHTML += "\n";

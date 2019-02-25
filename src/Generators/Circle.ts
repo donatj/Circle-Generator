@@ -1,6 +1,6 @@
 namespace Generators {
 
-	type circleModes = "thick" | "thin" | "filled"
+	type circleModes = "thick" | "thin" | "filled";
 
 	export class Circle implements GeneratorInterface2D {
 
@@ -24,7 +24,7 @@ namespace Generators {
 				this.filled(x + 1, y - 1, radius, ratio) &&
 				this.filled(x - 1, y - 1, radius, ratio) &&
 				this.filled(x - 1, y + 1, radius, ratio)
-			)
+			);
 		}
 
 		private thinfilled(x: number, y: number, radius: number, ratio: number): boolean {

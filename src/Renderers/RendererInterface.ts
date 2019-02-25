@@ -15,8 +15,8 @@ namespace Renderers {
 	}
 
 	export interface RenderOutput {
-		node: Node,
-		setScale(scale: number): void,
+		node: Node;
+		setScale(scale: number): void;
 	}
 
 }

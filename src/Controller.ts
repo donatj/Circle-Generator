@@ -9,34 +9,34 @@ namespace Controllers {
 		private height = this.defaultHeight;
 
 		constructor(private controls: HTMLElement, private result: HTMLElement) {
-			this.render()
+			this.render();
 
 			this.makeControl("number", `${this.defaultWidth}`, (s) => {
 				this.width = parseInt(s, 10);
-				this.render()
+				this.render();
 			});
 
 			this.makeControl("number", `${this.defaultHeight}`, (s) => {
 				this.height = parseInt(s, 10);
-				this.render()
+				this.render();
 			});
 		}
 
 		private makeControl(
-			type: string, value: string, onAlter: (val: string) => void
+			type: string, value: string, onAlter: (val: string) => void,
 		): HTMLInputElement {
-			let controlElm = document.createElement("input");
+			const controlElm = document.createElement("input");
 			controlElm.type = type;
 			controlElm.value = value;
 
 			this.controls.appendChild(controlElm);
 			let timeout: number;
-			let handler = () => {
-				clearTimeout(timeout)
+			const handler = () => {
+				clearTimeout(timeout);
 				timeout = setTimeout(() => {
 					onAlter(controlElm.value);
 				}, 100);
-			}
+			};
 			controlElm.addEventListener("change", handler);
 			controlElm.addEventListener("keyup", handler);
 
@@ -44,10 +44,10 @@ namespace Controllers {
 		}
 
 		private render() {
-			let ccc = new Generators.Circle(this.width, this.height);
+			const ccc = new Generators.Circle(this.width, this.height);
 			ccc.setMode("thin");
 			// let rend = new Renderers.SvgRenderer();
-			let rend = new Renderers.SvgRenderer();
+			const rend = new Renderers.SvgRenderer();
 			rend.setGenerator(ccc);
 
 			rend.render(this.width, this.height, this.result);
