@@ -1,4 +1,4 @@
-namespace Renderers {
+
 /*
 	export class TableRenderer implements RendererInterface {
 
@@ -47,4 +47,3 @@ namespace Renderers {
 
 	}
 */
-}

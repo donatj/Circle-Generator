@@ -1,7 +1,5 @@
-namespace Generators {
-	export interface GeneratorInterface2D {
+export interface GeneratorInterface2D {
 
-		isFilled(x: number, y: number): boolean;
+	isFilled(x: number, y: number): boolean;
 
-	}
 }
