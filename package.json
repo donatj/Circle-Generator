@@ -12,7 +12,14 @@
   "author": "Jesse G. Donat",
   "license": "MIT",
   "devDependencies": {
-    "tslint": "^5.13.0",
-    "typescript": "^3.3.3333"
+    "ts-loader": "^8.0.2",
+    "tslint": "^6",
+    "typescript": "^3.9.7",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  },
+  "dependencies": {
+    "@types/file-saver": "^2.0.1",
+    "file-saver": "^2.0.2"
   }
 }
