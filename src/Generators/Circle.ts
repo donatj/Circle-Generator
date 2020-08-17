@@ -1,10 +1,31 @@
 import { GeneratorInterface2D } from "./GeneratorInterface2D";
+import { ControlAwareInterface } from "../Controller";
 
-type circleModes = "thick" | "thin" | "filled";
+export enum CircleModes {
+	thick = 'thick',
+	thin = 'thin',
+	filled = 'filled',
+}
 
-export class Circle implements GeneratorInterface2D {
+export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 
-	constructor(private width: number, private height: number) { }
+	private circleModeControl = document.createElement('select')
+
+	constructor(private width: number, private height: number) {
+		for (const item of Object.keys(CircleModes)) {
+			const opt = document.createElement('option');
+			opt.innerText = item;
+			this.circleModeControl.appendChild(opt);
+		}
+
+		this.circleModeControl.addEventListener('change', ()=>{
+			this.setMode(this.circleModeControl.value as CircleModes)
+		})
+	}
+
+	public getControls() {
+		return [this.circleModeControl];
+	}
 
 	private distance(x: number, y: number, ratio: number): number {
 		return Math.sqrt((Math.pow(y * ratio, 2)) + Math.pow(x, 2));
@@ -33,9 +54,9 @@ export class Circle implements GeneratorInterface2D {
 				&& this.fatfilled(x, y + (y > 0 ? 1 : -1), radius, ratio));
 	}
 
-	private mode: circleModes = "thick";
+	private mode: CircleModes = CircleModes.thick;
 
-	public setMode(mode: circleModes): void {
+	public setMode(mode: CircleModes): void {
 		this.mode = mode;
 	}
 
@@ -44,10 +65,10 @@ export class Circle implements GeneratorInterface2D {
 		y = -.5 * (this.height - 2 * (y + .5));
 
 		switch (this.mode) {
-			case "thick": {
+			case CircleModes.thick: {
 				return this.fatfilled(x, y, (this.width / 2), this.width / this.height);
 			}
-			case "thin": {
+			case CircleModes.thin: {
 				return this.thinfilled(x, y, (this.width / 2), this.width / this.height);
 			}
 			default: {

@@ -18,3 +18,4 @@ export interface RenderOutput {
 	node: Node;
 	setScale(scale: number): void;
 }
+
