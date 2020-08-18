@@ -4,8 +4,6 @@ import { RendererInterface } from "./RendererInterface";
 export class SvgRenderer implements RendererInterface {
 
 	private innerContent = '';
-	private svgWidth = 1;
-	private svgHeight = 1;
 
 	private dWidth = 5;
 	private dBorder = 1;
@@ -59,8 +57,8 @@ export class SvgRenderer implements RendererInterface {
 	}
 
 	public render(width: number, height: number, target: HTMLElement): void {
-		this.svgWidth = this.dFull * (width + 1);
-		this.svgHeight = this.dFull * (height + 1);
+		const svgWidth = this.dFull * (width + 1);
+		const svgHeight = this.dFull * (height + 1);
 
 		if (this.generator) {
 			for (let y = 0; y < height; y++) {
@@ -71,15 +69,15 @@ export class SvgRenderer implements RendererInterface {
 		}
 
 		let text = '';
-		text += '<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="' + this.svgWidth + '" data-h="' + this.svgHeight + '" width="' + this.svgWidth + 'px" height="' + this.svgHeight + 'px" viewBox="0 0 ' + this.svgWidth + ' ' + this.svgHeight + '">';
+		text += '<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="' + svgWidth + '" data-h="' + svgHeight + '" width="' + svgWidth + 'px" height="' + svgHeight + 'px" viewBox="0 0 ' + svgWidth + ' ' + svgHeight + '">';
 		text += this.innerContent;
 
-		for (let ix = 0; ix < this.svgWidth; ix += this.dFull) {
-			text += '<rect x="' + (ix + (this.dWidth / 2)) + '" y="0" fill="#bbbbbb" width="' + this.dBorder + '" height="' + this.svgHeight + '" opacity=".4" />';
+		for (let ix = 0; ix < svgWidth; ix += this.dFull) {
+			text += '<rect x="' + (ix + (this.dWidth / 2)) + '" y="0" fill="#bbbbbb" width="' + this.dBorder + '" height="' + svgHeight + '" opacity=".4" />';
 		}
 
-		for (let iy = 0; iy < this.svgHeight; iy += this.dFull) {
-			text += '<rect x="0" y="' + (iy + (this.dWidth / 2)) + '" fill="#bbbbbb" width="' + this.svgWidth + '" opacity=".6" height="' + this.dBorder + '"/>';
+		for (let iy = 0; iy < svgHeight; iy += this.dFull) {
+			text += '<rect x="0" y="' + (iy + (this.dWidth / 2)) + '" fill="#bbbbbb" width="' + svgWidth + '" opacity=".6" height="' + this.dBorder + '"/>';
 		}
 
 		text += '<line id="selection_line" x1="0" y1="0" x2="0" y2="0" style="stroke:rgb(0,255,0);" stroke-width="3" stroke-linecap="round" opacity="0">';
