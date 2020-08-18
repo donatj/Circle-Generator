@@ -1,6 +1,7 @@
-import { GeneratorInterface2D } from "./GeneratorInterface2D";
-import { ControlAwareInterface } from "../Controller";
+import { GeneratorInterface2D, Bounds } from "./GeneratorInterface2D";
+import { ControlAwareInterface, makeControl } from "../Controller";
 import { distance } from "../Math";
+import { EventEmitter } from "../EventEmitter";
 
 export enum CircleModes {
 	thick = 'thick',
@@ -33,22 +34,33 @@ function thinfilled(x: number, y: number, radius: number, ratio: number): boolea
 
 export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 
-	private circleModeControl = document.createElement('select')
+	private circleModeControl = document.createElement('select');
 
-	constructor(private width: number, private height: number) {
+	public readonly changeEmitter = new EventEmitter<void>();
+
+	private widthControl = makeControl("number", "5", () => {
+		this.changeEmitter.trigger();
+	});
+
+	private heightControl = makeControl("number", "5", () => {
+		this.changeEmitter.trigger();
+	});
+
+	constructor() {
 		for (const item of Object.keys(CircleModes)) {
 			const opt = document.createElement('option');
 			opt.innerText = item;
 			this.circleModeControl.appendChild(opt);
 		}
 
-		this.circleModeControl.addEventListener('change', ()=>{
-			this.setMode(this.circleModeControl.value as CircleModes)
+		this.circleModeControl.addEventListener('change', () => {
+			this.setMode(this.circleModeControl.value as CircleModes);
+			this.changeEmitter.trigger();
 		})
 	}
 
 	public getControls() {
-		return [this.circleModeControl];
+		return [this.circleModeControl, this.widthControl, this.heightControl];
 	}
 
 	private mode: CircleModes = CircleModes.thick;
@@ -57,19 +69,31 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 		this.mode = mode;
 	}
 
+	public getBounds(): Bounds {
+		return {
+			minX: 0,
+			maxX: parseInt(this.widthControl.value, 10),
+
+			minY: 0,
+			maxY: parseInt(this.heightControl.value, 10),
+		}
+	}
+
 	public isFilled(x: number, y: number): boolean {
-		x = -.5 * (this.width - 2 * (x + .5));
-		y = -.5 * (this.height - 2 * (y + .5));
+		const bounds = this.getBounds();
+
+		x = -.5 * (bounds.maxX - 2 * (x + .5));
+		y = -.5 * (bounds.maxY - 2 * (y + .5));
 
 		switch (this.mode) {
 			case CircleModes.thick: {
-				return fatfilled(x, y, (this.width / 2), this.width / this.height);
+				return fatfilled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
 			}
 			case CircleModes.thin: {
-				return thinfilled(x, y, (this.width / 2), this.width / this.height);
+				return thinfilled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
 			}
 			default: {
-				return filled(x, y, (this.width / 2), this.width / this.height);
+				return filled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
 			}
 		}
 	}

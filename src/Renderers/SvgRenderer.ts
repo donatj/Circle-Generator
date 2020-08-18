@@ -1,7 +1,9 @@
 import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
-import { RendererInterface } from "./RendererInterface";
+import { RendererInterface, Downloadable } from "./RendererInterface";
+import { ControlAwareInterface } from "../Controller";
+import { EventEmitter } from "../EventEmitter";
 
-export class SvgRenderer implements RendererInterface {
+export class SvgRenderer implements RendererInterface, Downloadable, ControlAwareInterface {
 
 	private innerContent = '';
 
@@ -15,21 +17,27 @@ export class SvgRenderer implements RendererInterface {
 	// 	this._inner_content = '';
 	// }
 
+	public readonly changeEmitter = new EventEmitter<void>();
+
 	private generator: GeneratorInterface2D | null = null;
 
 	public setGenerator(generator: GeneratorInterface2D) {
 		this.generator = generator;
 	}
 
-	private hasInlineSvg() {
+	public getControls() {
+		return [];
+	}
+
+	private hasInlineSvg() : boolean {
 		const div = document.createElement('div');
 		div.innerHTML = '<svg/>';
 		return (div.firstChild && div.firstChild.namespaceURI) == 'http://www.w3.org/2000/svg';
 	}
 
-	private add(x: number, y: number, width: number, height: number, filled: boolean) {
-		const xp = (((x+1) * this.dFull) /*+ (this._svg_width / 2)*/ - (this.dFull / 2)) + .5;
-		const yp = (((y+1) * this.dFull) /*+ (this._svg_height / 2)*/ - (this.dFull / 2)) + .5;
+	private add(x: number, y: number, width: number, height: number, filled: boolean) : string {
+		const xp = (((x + 1) * this.dFull) /*+ (this._svg_width / 2)*/ - (this.dFull / 2)) + .5;
+		const yp = (((y + 1) * this.dFull) /*+ (this._svg_height / 2)*/ - (this.dFull / 2)) + .5;
 
 		let color: string | null = null;
 
@@ -52,32 +60,41 @@ export class SvgRenderer implements RendererInterface {
 
 		if (color) {
 			const fillstr = (filled ? 'filled' : '');
-			this.innerContent += `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${fillstr}"/>`;
+			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${fillstr}"/>`;
 		}
+
+		return '';
 	}
 
-	public render(width: number, height: number, target: HTMLElement): void {
+	public render(target: HTMLElement): void {
+		if (!this.generator) {
+			throw new Error("missing generator");
+		}
+
+		const bounds = this.generator.getBounds();
+
+		const width = bounds.maxX - bounds.minX;
+		const height = bounds.maxY - bounds.minY;
+
 		const svgWidth = this.dFull * (width + 1);
 		const svgHeight = this.dFull * (height + 1);
 
-		if (this.generator) {
-			for (let y = 0; y < height; y++) {
-				for (let x = 0; x < width; x++) {
-					this.add(x, y, width, height, this.generator.isFilled(x, y));
-				}
+		let text = `<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="${svgWidth}" data-h="${svgHeight}" width="${svgWidth}px" height="${svgHeight}px" viewBox="0 0 ${svgWidth} ${svgHeight}">`;
+
+		for (let y = 0; y < height; y++) {
+			for (let x = 0; x < width; x++) {
+				text += this.add(x, y, width, height, this.generator.isFilled(x, y));
 			}
 		}
 
-		let text = '';
-		text += '<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="' + svgWidth + '" data-h="' + svgHeight + '" width="' + svgWidth + 'px" height="' + svgHeight + 'px" viewBox="0 0 ' + svgWidth + ' ' + svgHeight + '">';
 		text += this.innerContent;
 
 		for (let ix = 0; ix < svgWidth; ix += this.dFull) {
-			text += '<rect x="' + (ix + (this.dWidth / 2)) + '" y="0" fill="#bbbbbb" width="' + this.dBorder + '" height="' + svgHeight + '" opacity=".4" />';
+			text += `<rect x="${(ix + (this.dWidth / 2))}" y="0" fill="#bbbbbb" width="${this.dBorder}" height="${svgHeight}" opacity=".4" />`;
 		}
 
 		for (let iy = 0; iy < svgHeight; iy += this.dFull) {
-			text += '<rect x="0" y="' + (iy + (this.dWidth / 2)) + '" fill="#bbbbbb" width="' + svgWidth + '" opacity=".6" height="' + this.dBorder + '"/>';
+			text += `<rect x="0" y="${(iy + (this.dWidth / 2))}" fill="#bbbbbb" width="${svgWidth}" opacity=".6" height="${this.dBorder}"/>`;
 		}
 
 		text += '<line id="selection_line" x1="0" y1="0" x2="0" y2="0" style="stroke:rgb(0,255,0);" stroke-width="3" stroke-linecap="round" opacity="0">';
@@ -118,8 +135,7 @@ export class SvgRenderer implements RendererInterface {
 		svgc.style.height = scaleY + 'px';
 	}
 
-	// public function name(params:type) {
-
-	// }
-
+	public getDownloads() {
+		return [];
+	}
 }

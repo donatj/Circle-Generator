@@ -1,5 +1,6 @@
-import { Circle, CircleModes } from "./Generators/Circle";
+import { Circle } from "./Generators/Circle";
 import { SvgRenderer } from "./Renderers/SvgRenderer";
+import { isDownloadable } from "./Renderers/RendererInterface";
 
 export interface ControlAwareInterface {
 	getControls(): HTMLElement[];
@@ -9,76 +10,67 @@ export function isControlAwareInterface(o: any): o is ControlAwareInterface {
 	return o && (typeof o.getControls === "function");
 }
 
+export function makeControl(
+	type: string, value: string, onAlter: (val: string) => void,
+): HTMLInputElement {
+	const controlElm = document.createElement("input");
+	controlElm.type = type;
+	controlElm.value = value;
+
+	let timeout: number;
+	const handler = () => {
+		clearTimeout(timeout);
+		timeout = setTimeout(() => {
+			onAlter(controlElm.value);
+		}, 100);
+	};
+	controlElm.addEventListener("change", handler);
+	controlElm.addEventListener("keyup", handler);
+	controlElm.addEventListener("input", handler);
+
+	return controlElm;
+}
+
 export class MainController {
 
-	private defaultWidth = 5;
-	private defaultHeight = 5;
-
-	private width = this.defaultWidth;
-	private height = this.defaultHeight;
+	private circle = new Circle();
+	private renderer = new SvgRenderer();
 
 	constructor(private controls: HTMLElement, private result: HTMLElement) {
+		this.renderControls();
 		this.render();
 
-		this.makeControl("number", `${this.defaultWidth}`, (s) => {
-			this.width = parseInt(s, 10);
-			this.render();
-		});
-
-		this.makeControl("number", `${this.defaultHeight}`, (s) => {
-			this.height = parseInt(s, 10);
-			this.render();
-		});
-
+		this.circle.changeEmitter.add(()=>{ this.render() });
+		this.renderer.changeEmitter.add(()=>{ this.render() });
 	}
 
-	private makeControl(
-		type: string, value: string, onAlter: (val: string) => void,
-	): HTMLInputElement {
-		const controlElm = document.createElement("input");
-		controlElm.type = type;
-		controlElm.value = value;
+	private renderControls(){
+		this.controls.innerHTML = '';
+		if (isControlAwareInterface(this.circle)) {
+			for(const c of this.circle.getControls() ) {
+				this.controls.appendChild(c);
+			}
+		}
 
-		this.controls.appendChild(controlElm);
-		let timeout: number;
-		const handler = () => {
-			clearTimeout(timeout);
-			timeout = setTimeout(() => {
-				onAlter(controlElm.value);
-			}, 100);
-		};
-		controlElm.addEventListener("change", handler);
-		controlElm.addEventListener("keyup", handler);
-
-		return controlElm;
+		if(isDownloadable(this.renderer)) {
+			for(const download of this.renderer.getDownloads() ) {
+				// this.controls.appendChild(c);
+				console.log(download);
+			}
+		}
 	}
 
 	private render() {
-		const ccc = new Circle(this.width, this.height);
-		ccc.setMode(CircleModes.thin);
+		this.renderer.setGenerator(this.circle);
+		this.renderer.render(this.result);
 
-		if (isControlAwareInterface(ccc)) {
-			for(const c of ccc.getControls() ) {
+		if (isControlAwareInterface(this.renderer)) {
+			for(const c of this.renderer.getControls() ) {
 				this.controls.appendChild(c);
 			}
 		}
 
-		// let rend = new Renderers.SvgRenderer();
-		const rend = new SvgRenderer();
-		rend.setGenerator(ccc);
-		rend.render(this.width, this.height, this.result);
-
-		if (isControlAwareInterface(rend)) {
-			for(const c of rend.getControls() ) {
-				this.controls.appendChild(c);
-			}
-		}
-
-		rend.setScale(244);
+		this.renderer.setScale(244);
 	}
-
-	// private getDownloadName(ext: string) {
-	// 	return "Circle-" + this.width + "x" + this.height + "-" + (+new Date()) + "-output." + ext;
-	// }
 
 }

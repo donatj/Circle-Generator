@@ -4,9 +4,9 @@ export interface RendererInterface {
 
 	// add(x: number, y: number, filled: boolean): void;
 
-	render(width: number, height: number, target : HTMLElement) : void;
+	render(target: HTMLElement): void;
 
-	setGenerator(generator: GeneratorInterface2D) : void;
+	setGenerator(generator: GeneratorInterface2D): void;
 
 	// setScale(scale: number): void;
 
@@ -19,3 +19,16 @@ export interface RenderOutput {
 	setScale(scale: number): void;
 }
 
+export type Download = {
+	type: string,
+	extension: string,
+	getBlob: () => string,
+}
+
+export interface Downloadable {
+	getDownloads() : Download[];
+}
+
+export function isDownloadable(a:any) : a is Downloadable {
+	return (a as Downloadable).getDownloads !== undefined;
+}

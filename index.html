@@ -50,12 +50,10 @@
 	<div id="controls"></div>
 	<pre id="result"></pre>
 	<script>
-		require(['PixelGenerator'], function (c) {
-			new c.MainController(
-				document.getElementById("controls"),
-				document.getElementById("result"),
-			);
-		})
+		new PixelGenerator.MainController(
+			document.getElementById("controls"),
+			document.getElementById("result"),
+		);
 	</script>
 </body>
 

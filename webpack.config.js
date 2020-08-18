@@ -2,10 +2,10 @@ const path = require('path');
 
 module.exports = {
   entry: './src/Controller.ts',
-//   optimization: {
-// 	// We no not want to minimize our code.
-// 	minimize: false
-//   },
+  optimization: {
+    // We no not want to minimize our code.
+    minimize: false
+  },
   module: {
     rules: [
       {
@@ -16,10 +16,10 @@ module.exports = {
     ],
   },
   resolve: {
-    extensions: [ '.tsx', '.ts', '.js' ],
+    extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
-  libraryTarget: 'amd',
+    libraryTarget: 'global',
     library: 'PixelGenerator',
     // umdNamedDefine: true,
     filename: 'lib/generator.js',
