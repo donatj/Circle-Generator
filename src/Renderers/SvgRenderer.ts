@@ -51,7 +51,7 @@ export class SvgRenderer implements RendererInterface, Downloadable, ControlAwar
 				color = '#FF0000';
 			}
 		} else if (x == midx || y == midy) {
-			if (x & 1 || y & 1) {
+			if (xor(!!(x & 1), !!(y & 1))) {
 				color = '#EEEEEE';
 			} else {
 				color = '#F8F8F8';
