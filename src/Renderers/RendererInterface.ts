@@ -24,11 +24,3 @@ export type Download = {
 	extension: string,
 	getBlob: () => string,
 }
-
-export interface Downloadable {
-	getDownloads() : Download[];
-}
-
-export function isDownloadable(a:any) : a is Downloadable {
-	return (a as Downloadable).getDownloads !== undefined;
-}

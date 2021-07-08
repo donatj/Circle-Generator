@@ -1,12 +1,36 @@
 import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
-import { RendererInterface, Downloadable } from "./RendererInterface";
-import { ControlAwareInterface } from "../Controller";
+import { RendererInterface } from "./RendererInterface";
+import { Control, ControlAwareInterface, makeButtonControl } from "../Controller";
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Misc";
 
-export class SvgRenderer implements RendererInterface, Downloadable, ControlAwareInterface {
+function svgToCanvas(svgData: string): Promise<HTMLCanvasElement> {
+	const canvas = document.createElement("canvas");
+	const ctx = canvas.getContext("2d");
+	if (ctx === null) {
+		throw new Error("Could not create canvas context");
+	}
 
-	private innerContent = '';
+	const p = new Promise<HTMLCanvasElement>((resolve, reject) => {
+		const img = document.createElement("img");
+		img.src = "data:image/svg+xml;base64," + btoa(svgData);
+
+		img.onload = () => {
+			canvas.width = img.width;
+			canvas.height = img.height;
+
+			ctx.drawImage(img, 0, 0);
+
+			resolve(canvas);
+		}
+	});
+
+	return p;
+}
+
+
+
+export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	private dWidth = 5;
 	private dBorder = 1;
@@ -14,8 +38,35 @@ export class SvgRenderer implements RendererInterface, Downloadable, ControlAwar
 
 	public readonly changeEmitter = new EventEmitter<void>();
 
-	public getControls() {
-		return [];
+	public getControls(): Control[] {
+		return [
+			makeButtonControl('Download PNG', 'Download PNG', async () => {
+				if (!this.lastSvg) {
+					throw new Error('No SVG to download');
+				}
+
+				const canvas = await svgToCanvas(this.lastSvg);
+				const dataUrl = canvas.toDataURL();
+
+				const a = document.createElement('a');
+				a.href = dataUrl;
+				a.download = "soup.png";
+				document.body.appendChild(a);
+				a.click();
+			}),
+
+			makeButtonControl('Download SVG', 'Download SVG', async () => {
+				if (!this.lastSvg) {
+					throw new Error('No SVG to download');
+				}
+
+				const a = document.createElement('a');
+				a.href = "data:image/svg+xml;base64," + btoa(this.lastSvg);
+				a.download = "soup.svg";
+				document.body.appendChild(a);
+				a.click();
+			}),
+		];
 	}
 
 	private hasInlineSvg(): boolean {
@@ -55,7 +106,21 @@ export class SvgRenderer implements RendererInterface, Downloadable, ControlAwar
 		return '';
 	}
 
+	private lastSvg: string | null = null;
+
 	public render(target: HTMLElement, generator: GeneratorInterface2D): void {
+		const svg = this.generateSVG(generator);
+
+		if (this.hasInlineSvg()) {
+			target.innerHTML = svg;
+		} else {
+			target.innerHTML = '<img id="svg_circle" src="data:image/svg+xml;base64,' + btoa(svg) + '">';
+		}
+
+		this.lastSvg = svg;
+	}
+
+	private generateSVG(generator: GeneratorInterface2D): string {
 		const bounds = generator.getBounds();
 
 		const width = bounds.maxX - bounds.minX;
@@ -72,8 +137,6 @@ export class SvgRenderer implements RendererInterface, Downloadable, ControlAwar
 			}
 		}
 
-		text += this.innerContent;
-
 		for (let ix = 0; ix < svgWidth; ix += this.dFull) {
 			text += `<rect x="${(ix + (this.dWidth / 2))}" y="0" fill="#bbbbbb" width="${this.dBorder}" height="${svgHeight}" opacity=".4" />`;
 		}
@@ -82,15 +145,10 @@ export class SvgRenderer implements RendererInterface, Downloadable, ControlAwar
 			text += `<rect x="0" y="${(iy + (this.dWidth / 2))}" fill="#bbbbbb" width="${svgWidth}" opacity=".6" height="${this.dBorder}"/>`;
 		}
 
-		text += '<line id="selection_line" x1="0" y1="0" x2="0" y2="0" style="stroke:rgb(0,255,0);" stroke-width="3" stroke-linecap="round" opacity="0">';
-
+		text += '<line id="selection_line" x1="0" y1="0" x2="0" y2="0" style="stroke:rgb(0,255,0);" stroke-width="3" stroke-linecap="round" opacity="0" />';
 		text += '</svg>';
 
-		if (this.hasInlineSvg()) {
-			target.innerHTML = text;
-		} else {
-			target.innerHTML = '<img id="svg_circle" src="data:image/svg+xml;base64,' + btoa(text) + '">';
-		}
+		return text;
 	}
 
 	public setScale(scale: number) {
@@ -118,9 +176,5 @@ export class SvgRenderer implements RendererInterface, Downloadable, ControlAwar
 		svgc.setAttribute('height', scaleY + 'px');
 		svgc.style.width = scaleX + 'px';
 		svgc.style.height = scaleY + 'px';
-	}
-
-	public getDownloads() {
-		return [];
 	}
 }

@@ -34,15 +34,15 @@ function thinfilled(x: number, y: number, radius: number, ratio: number): boolea
 
 export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 
-	private circleModeControl = document.createElement('select');
+	private circleModeControlElm = document.createElement('select');
 
 	public readonly changeEmitter = new EventEmitter<void>();
 
-	private widthControl = makeInputControl("number", "5", () => {
+	private widthControl = makeInputControl('width', "number", "5", () => {
 		this.changeEmitter.trigger();
 	});
 
-	private heightControl = makeInputControl("number", "5", () => {
+	private heightControl = makeInputControl('height', "number", "5", () => {
 		this.changeEmitter.trigger();
 	});
 
@@ -50,20 +50,20 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 		for (const item of Object.keys(CircleModes)) {
 			const opt = document.createElement('option');
 			opt.innerText = item;
-			this.circleModeControl.appendChild(opt);
+			this.circleModeControlElm.appendChild(opt);
 		}
 
-		this.circleModeControl.addEventListener('change', () => {
-			this.setMode(this.circleModeControl.value as CircleModes);
+		this.circleModeControlElm.addEventListener('change', () => {
+			this.setMode(this.circleModeControlElm.value as CircleModes);
 			this.changeEmitter.trigger();
 		})
 	}
 
 	public getControls(): Control[] {
 		return [
-			{ element: this.widthControl, title: 'Width' },
-			{ element: this.heightControl, title: 'Width' },
-			{ element: this.circleModeControl, title: 'Mode' },
+			this.widthControl,
+			this.heightControl,
+			{ element: this.circleModeControlElm, title: 'Mode' },
 		];
 	}
 
@@ -76,10 +76,10 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 	public getBounds(): Bounds {
 		return {
 			minX: 0,
-			maxX: parseInt(this.widthControl.value, 10),
+			maxX: parseInt(this.widthControl.element.value, 10),
 
 			minY: 0,
-			maxY: parseInt(this.heightControl.value, 10),
+			maxY: parseInt(this.heightControl.element.value, 10),
 		}
 	}
 
