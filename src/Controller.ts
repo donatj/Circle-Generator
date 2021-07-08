@@ -15,7 +15,7 @@ export function isControlAwareInterface(o: any): o is ControlAwareInterface {
 	return o && (typeof o.getControls === "function");
 }
 
-export function makeControl(
+export function makeInputControl(
 	type: string, value: string, onAlter: (val: string) => void,
 ): HTMLInputElement {
 	const controlElm = document.createElement("input");

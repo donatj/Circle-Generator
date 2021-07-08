@@ -1,5 +1,5 @@
 import { GeneratorInterface2D, Bounds } from "./GeneratorInterface2D";
-import { ControlAwareInterface, makeControl, Control } from "../Controller";
+import { ControlAwareInterface, makeInputControl, Control } from "../Controller";
 import { distance } from "../Math";
 import { EventEmitter } from "../EventEmitter";
 
@@ -38,11 +38,11 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 
 	public readonly changeEmitter = new EventEmitter<void>();
 
-	private widthControl = makeControl("number", "5", () => {
+	private widthControl = makeInputControl("number", "5", () => {
 		this.changeEmitter.trigger();
 	});
 
-	private heightControl = makeControl("number", "5", () => {
+	private heightControl = makeInputControl("number", "5", () => {
 		this.changeEmitter.trigger();
 	});
 
