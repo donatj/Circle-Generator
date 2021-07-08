@@ -1,5 +1,5 @@
 import { GeneratorInterface2D, Bounds } from "./GeneratorInterface2D";
-import { ControlAwareInterface, makeControl } from "../Controller";
+import { ControlAwareInterface, makeControl, Control } from "../Controller";
 import { distance } from "../Math";
 import { EventEmitter } from "../EventEmitter";
 
@@ -59,8 +59,12 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 		})
 	}
 
-	public getControls() {
-		return [this.circleModeControl, this.widthControl, this.heightControl];
+	public getControls(): Control[] {
+		return [
+			{ element: this.widthControl, title: 'Width' },
+			{ element: this.heightControl, title: 'Width' },
+			{ element: this.circleModeControl, title: 'Mode' },
+		];
 	}
 
 	private mode: CircleModes = CircleModes.thick;

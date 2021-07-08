@@ -2,6 +2,7 @@ import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
 import { RendererInterface, Downloadable } from "./RendererInterface";
 import { ControlAwareInterface } from "../Controller";
 import { EventEmitter } from "../EventEmitter";
+import { xor } from "../Misc";
 
 export class SvgRenderer implements RendererInterface, Downloadable, ControlAwareInterface {
 
@@ -11,31 +12,19 @@ export class SvgRenderer implements RendererInterface, Downloadable, ControlAwar
 	private dBorder = 1;
 	private dFull = this.dWidth + this.dBorder;
 
-	// public constructor(private _max_x: number, private _max_y: number) {
-	// 	this._svg_width = this._dfull * _max_x;
-	// 	this._svg_height = this._dfull * _max_y;
-	// 	this._inner_content = '';
-	// }
-
 	public readonly changeEmitter = new EventEmitter<void>();
-
-	private generator: GeneratorInterface2D | null = null;
-
-	public setGenerator(generator: GeneratorInterface2D) {
-		this.generator = generator;
-	}
 
 	public getControls() {
 		return [];
 	}
 
-	private hasInlineSvg() : boolean {
+	private hasInlineSvg(): boolean {
 		const div = document.createElement('div');
 		div.innerHTML = '<svg/>';
 		return (div.firstChild && div.firstChild.namespaceURI) == 'http://www.w3.org/2000/svg';
 	}
 
-	private add(x: number, y: number, width: number, height: number, filled: boolean) : string {
+	private add(x: number, y: number, width: number, height: number, filled: boolean): string {
 		const xp = (((x + 1) * this.dFull) /*+ (this._svg_width / 2)*/ - (this.dFull / 2)) + .5;
 		const yp = (((y + 1) * this.dFull) /*+ (this._svg_height / 2)*/ - (this.dFull / 2)) + .5;
 
@@ -60,18 +49,14 @@ export class SvgRenderer implements RendererInterface, Downloadable, ControlAwar
 
 		if (color) {
 			const fillstr = (filled ? 'filled' : '');
-			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${fillstr}"/>`;
+			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${fillstr}" data-x="${x}" data-y="${y}"/>`;
 		}
 
 		return '';
 	}
 
-	public render(target: HTMLElement): void {
-		if (!this.generator) {
-			throw new Error("missing generator");
-		}
-
-		const bounds = this.generator.getBounds();
+	public render(target: HTMLElement, generator: GeneratorInterface2D): void {
+		const bounds = generator.getBounds();
 
 		const width = bounds.maxX - bounds.minX;
 		const height = bounds.maxY - bounds.minY;
@@ -81,9 +66,9 @@ export class SvgRenderer implements RendererInterface, Downloadable, ControlAwar
 
 		let text = `<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="${svgWidth}" data-h="${svgHeight}" width="${svgWidth}px" height="${svgHeight}px" viewBox="0 0 ${svgWidth} ${svgHeight}">`;
 
-		for (let y = 0; y < height; y++) {
-			for (let x = 0; x < width; x++) {
-				text += this.add(x, y, width, height, this.generator.isFilled(x, y));
+		for (let y = bounds.minY; y < bounds.maxY; y++) {
+			for (let x = bounds.minX; x < bounds.maxX; x++) {
+				text += this.add(x, y, width, height, generator.isFilled(x, y));
 			}
 		}
 

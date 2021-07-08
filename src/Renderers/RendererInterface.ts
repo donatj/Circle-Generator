@@ -4,9 +4,9 @@ export interface RendererInterface {
 
 	// add(x: number, y: number, filled: boolean): void;
 
-	render(target: HTMLElement): void;
+	render(target: HTMLElement, generator: GeneratorInterface2D): void;
 
-	setGenerator(generator: GeneratorInterface2D): void;
+	// setGenerator(generator: GeneratorInterface2D): void;
 
 	// setScale(scale: number): void;
 

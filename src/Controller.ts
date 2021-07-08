@@ -1,9 +1,14 @@
-import { Circle } from "./Generators/Circle";
 import { SvgRenderer } from "./Renderers/SvgRenderer";
 import { isDownloadable } from "./Renderers/RendererInterface";
+import { Circle } from "./Generators/Circle";
+
+export interface Control {
+	element: HTMLElement,
+	title: string,
+}
 
 export interface ControlAwareInterface {
-	getControls(): HTMLElement[];
+	getControls(): Control[];
 }
 
 export function isControlAwareInterface(o: any): o is ControlAwareInterface {
@@ -22,7 +27,7 @@ export function makeControl(
 		clearTimeout(timeout);
 		timeout = setTimeout(() => {
 			onAlter(controlElm.value);
-		}, 100);
+		}, 5);
 	};
 	controlElm.addEventListener("change", handler);
 	controlElm.addEventListener("keyup", handler);
@@ -33,27 +38,31 @@ export function makeControl(
 
 export class MainController {
 
-	private circle = new Circle();
+	private generator = new Circle();
 	private renderer = new SvgRenderer();
 
 	constructor(private controls: HTMLElement, private result: HTMLElement) {
 		this.renderControls();
 		this.render();
 
-		this.circle.changeEmitter.add(()=>{ this.render() });
-		this.renderer.changeEmitter.add(()=>{ this.render() });
+		this.generator.changeEmitter.add(() => { this.render() });
+		this.renderer.changeEmitter.add(() => { this.render() });
 	}
 
-	private renderControls(){
+	private renderControls() {
 		this.controls.innerHTML = '';
-		if (isControlAwareInterface(this.circle)) {
-			for(const c of this.circle.getControls() ) {
-				this.controls.appendChild(c);
+
+		if (isControlAwareInterface(this.generator)) {
+			for (const c of this.generator.getControls()) {
+				const label = document.createElement('label');
+				label.appendChild(document.createTextNode(`${c.title}:`))
+				label.appendChild(c.element);
+				this.controls.appendChild(label);
 			}
 		}
 
-		if(isDownloadable(this.renderer)) {
-			for(const download of this.renderer.getDownloads() ) {
+		if (isDownloadable(this.renderer)) {
+			for (const download of this.renderer.getDownloads()) {
 				// this.controls.appendChild(c);
 				console.log(download);
 			}
@@ -61,16 +70,15 @@ export class MainController {
 	}
 
 	private render() {
-		this.renderer.setGenerator(this.circle);
-		this.renderer.render(this.result);
+		this.renderer.render(this.result, this.generator);
 
 		if (isControlAwareInterface(this.renderer)) {
-			for(const c of this.renderer.getControls() ) {
+			for (const c of this.renderer.getControls()) {
 				this.controls.appendChild(c);
 			}
 		}
 
-		this.renderer.setScale(244);
+		this.renderer.setScale(544);
 	}
 
 }
