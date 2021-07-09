@@ -1,4 +1,6 @@
+import { GeneratorInterface2D } from "./Generators/GeneratorInterface2D";
 import { SvgRenderer } from "./Renderers/SvgRenderer";
+import { RendererInterface } from "./Renderers/RendererInterface";
 import { Circle } from "./Generators/Circle";
 
 export interface Control<T extends HTMLElement = HTMLElement> {
@@ -64,8 +66,8 @@ export function makeInputControl(
 
 export class MainController {
 
-	private generator = new Circle();
-	private renderer = new SvgRenderer();
+	private generator: GeneratorInterface2D = new Circle();
+	private renderer: RendererInterface = new SvgRenderer();
 
 	constructor(private controls: HTMLElement, private result: HTMLElement) {
 		this.renderControls();
@@ -112,7 +114,7 @@ export class MainController {
 				if (c.label) {
 					labelElm.innerText = c.label;
 				}
-				
+
 				labelElm.appendChild(c.element);
 			}
 
