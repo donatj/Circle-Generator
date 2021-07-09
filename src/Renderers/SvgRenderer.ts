@@ -1,6 +1,6 @@
 import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
 import { RendererInterface } from "./RendererInterface";
-import { Control, ControlAwareInterface, makeButtonControl } from "../Controller";
+import { Control, ControlAwareInterface, makeButtonControl, makeInputControl } from "../Controller";
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Misc";
 
@@ -28,8 +28,6 @@ function svgToCanvas(svgData: string): Promise<HTMLCanvasElement> {
 	return p;
 }
 
-
-
 export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	private dWidth = 5;
@@ -39,7 +37,17 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	public readonly changeEmitter = new EventEmitter<void>();
 
 	public getControls(): Control[] {
+
+		const scale = makeInputControl('scale', 'range', "544", (val) => {
+			this.setScale(parseInt(val, 10));
+		});
+
+		scale.element.min = "50";
+		scale.element.max = "3000";
+
 		return [
+			scale,
+
 			makeButtonControl('Download PNG', 'Download PNG', async () => {
 				if (!this.lastSvg) {
 					throw new Error('No SVG to download');
