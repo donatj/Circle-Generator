@@ -11,7 +11,7 @@ function svgToCanvas(svgData: string): Promise<HTMLCanvasElement> {
 		throw new Error("Could not create canvas context");
 	}
 
-	const p = new Promise<HTMLCanvasElement>((resolve, reject) => {
+	const p = new Promise<HTMLCanvasElement>((resolve) => {
 		const img = document.createElement("img");
 		img.src = "data:image/svg+xml;base64," + btoa(svgData);
 

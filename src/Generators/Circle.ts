@@ -51,7 +51,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 		})
 	}
 
-	private forceCircleControl = makeInputControl('Shape', 'Force Circle', "checkbox", "false", (val) => {
+	private forceCircleControl = makeInputControl('Shape', 'Force Circle', "checkbox", "false", () => {
 		this.heightControl.element.value = this.widthControl.element.value;
 		this.changeEmitter.trigger();
 	});
