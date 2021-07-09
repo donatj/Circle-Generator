@@ -3,7 +3,8 @@ import { Circle } from "./Generators/Circle";
 
 export interface Control<T extends HTMLElement = HTMLElement> {
 	element: T,
-	title: string,
+	label: string | null,
+	group: string,
 }
 
 export interface ControlAwareInterface {
@@ -14,7 +15,12 @@ export function isControlAwareInterface(o: any): o is ControlAwareInterface {
 	return o && (typeof o.getControls === "function");
 }
 
-export function makeButtonControl(title: string, text: string, onClick: (e: MouseEvent) => void) : Control<HTMLButtonElement> {
+export function makeButtonControl(
+	group: string,
+	label: string | null,
+	text: string,
+	onClick: (e: MouseEvent) => void
+): Control<HTMLButtonElement> {
 	const button = document.createElement("button");
 	button.innerText = text;
 
@@ -22,12 +28,17 @@ export function makeButtonControl(title: string, text: string, onClick: (e: Mous
 
 	return {
 		element: button,
-		title,
+		label,
+		group,
 	};
 }
 
 export function makeInputControl(
-	title: string, type: string, value: string, onAlter: (val: string) => void,
+	group: string,
+	label: string | null,
+	type: string,
+	value: string,
+	onAlter: (val: string) => void,
 ): Control<HTMLInputElement> {
 	const controlElm = document.createElement("input");
 	controlElm.type = type;
@@ -45,7 +56,8 @@ export function makeInputControl(
 	controlElm.addEventListener("input", handler);
 
 	return {
-		title,
+		label,
+		group,
 		element: controlElm,
 	};
 }
@@ -66,23 +78,50 @@ export class MainController {
 	private renderControls() {
 		this.controls.innerHTML = '';
 
-		const controlProviders = [ this.generator, this.renderer ];
+		const controlProviders = [this.generator, this.renderer];
 
-		for(const controlProvider of controlProviders) {
+		const controlGroups: { [key: string]: Control[] } = {};
+
+		for (const controlProvider of controlProviders) {
 			if (isControlAwareInterface(controlProvider)) {
 				for (const c of controlProvider.getControls()) {
-					const label = document.createElement('label');
-					label.appendChild(document.createTextNode(`${c.title}:`))
-					label.appendChild(c.element);
-					this.controls.appendChild(label);
+					if (!controlGroups[c.group]) {
+						controlGroups[c.group] = [];
+					}
+
+					controlGroups[c.group].push(c);
 				}
 			}
+		}
+
+		for (const group in controlGroups) {
+			if (!controlGroups.hasOwnProperty(group)) {
+				continue;
+			}
+
+			const groupElm = document.createElement("fieldset");
+			const legend = document.createElement("legend");
+			legend.innerText = group;
+			groupElm.appendChild(legend);
+
+			for (const c of controlGroups[group]) {
+
+				const labelElm = document.createElement("label");
+				groupElm.appendChild(labelElm);
+
+				if (c.label) {
+					labelElm.innerText = c.label;
+				}
+				
+				labelElm.appendChild(c.element);
+			}
+
+			this.controls.appendChild(groupElm);
 		}
 	}
 
 	private render() {
 		this.renderer.render(this.result, this.generator);
-		this.renderer.setScale(544);
 	}
 
 }

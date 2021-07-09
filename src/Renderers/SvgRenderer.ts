@@ -38,7 +38,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	public getControls(): Control[] {
 
-		const scale = makeInputControl('scale', 'range', "544", (val) => {
+		const scale = makeInputControl('Render', 'scale', 'range', "544", (val) => {
 			this.setScale(parseInt(val, 10));
 		});
 
@@ -48,12 +48,12 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		return [
 			scale,
 
-			makeButtonControl('Download PNG', 'Download PNG', async () => {
+			makeButtonControl('Download', null, 'PNG', async () => {
 				if (!this.lastSvg) {
 					throw new Error('No SVG to download');
 				}
 
-				const canvas = await svgToCanvas(this.lastSvg);
+				const canvas = await svgToCanvas(this.lastSvg.outerHTML);
 				const dataUrl = canvas.toDataURL();
 
 				const a = document.createElement('a');
@@ -63,13 +63,13 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 				a.click();
 			}),
 
-			makeButtonControl('Download SVG', 'Download SVG', async () => {
+			makeButtonControl('Download', null, 'SVG', async () => {
 				if (!this.lastSvg) {
 					throw new Error('No SVG to download');
 				}
 
 				const a = document.createElement('a');
-				a.href = "data:image/svg+xml;base64," + btoa(this.lastSvg);
+				a.href = "data:image/svg+xml;base64," + btoa(this.lastSvg.outerHTML);
 				a.download = "soup.svg";
 				document.body.appendChild(a);
 				a.click();
@@ -114,18 +114,18 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		return '';
 	}
 
-	private lastSvg: string | null = null;
+	private lastSvg: SVGElement | null = null;
 
 	public render(target: HTMLElement, generator: GeneratorInterface2D): void {
-		const svg = this.generateSVG(generator);
-
-		if (this.hasInlineSvg()) {
-			target.innerHTML = svg;
-		} else {
-			target.innerHTML = '<img id="svg_circle" src="data:image/svg+xml;base64,' + btoa(svg) + '">';
+		if( !this.hasInlineSvg() ) {
+			throw new Error(`SVG Renderer: No support for inline SVG. Please use a browser that supports SVG.`);
 		}
 
-		this.lastSvg = svg;
+		const svg = this.generateSVG(generator);
+
+		target.innerHTML = svg;
+
+		this.lastSvg = target.querySelector('svg');
 	}
 
 	private generateSVG(generator: GeneratorInterface2D): string {

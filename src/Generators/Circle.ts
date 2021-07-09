@@ -38,14 +38,6 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 
 	public readonly changeEmitter = new EventEmitter<void>();
 
-	private widthControl = makeInputControl('width', "number", "5", () => {
-		this.changeEmitter.trigger();
-	});
-
-	private heightControl = makeInputControl('height', "number", "5", () => {
-		this.changeEmitter.trigger();
-	});
-
 	constructor() {
 		for (const item of Object.keys(CircleModes)) {
 			const opt = document.createElement('option');
@@ -59,11 +51,28 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 		})
 	}
 
+	private forceCircleControl = makeInputControl('Shape', 'Force Circle', "checkbox", "false", (val) => {
+		this.heightControl.element.value = this.widthControl.element.value;
+		this.changeEmitter.trigger();
+	});
+
+	private widthControl = makeInputControl('Shape', 'width', "number", "5", () => {
+		if( this.forceCircleControl.element.checked ) {
+			this.heightControl.element.value = this.widthControl.element.value;
+		}
+		this.changeEmitter.trigger();
+	});
+
+	private heightControl = makeInputControl('Shape', 'height', "number", "5", () => {
+		this.changeEmitter.trigger();
+	});
+
 	public getControls(): Control[] {
 		return [
+			this.forceCircleControl,
 			this.widthControl,
 			this.heightControl,
-			{ element: this.circleModeControlElm, title: 'Mode' },
+			{ element: this.circleModeControlElm, label: 'Mode', group: 'Shape' },
 		];
 	}
 
