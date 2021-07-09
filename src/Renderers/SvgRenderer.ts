@@ -36,10 +36,13 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	public readonly changeEmitter = new EventEmitter<void>();
 
+	public scaleSize = 544;
+
 	public getControls(): Control[] {
 
-		const scale = makeInputControl('Render', 'scale', 'range', "544", (val) => {
-			this.setScale(parseInt(val, 10));
+		const scale = makeInputControl('Render', 'scale', 'range', `${this.scaleSize}`, (val) => {
+			this.scaleSize = parseInt(val, 10);
+			this.scale();
 		});
 
 		scale.element.min = "50";
@@ -117,7 +120,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	private lastSvg: SVGElement | null = null;
 
 	public render(target: HTMLElement, generator: GeneratorInterface2D): void {
-		if( !this.hasInlineSvg() ) {
+		if (!this.hasInlineSvg()) {
 			throw new Error(`SVG Renderer: No support for inline SVG. Please use a browser that supports SVG.`);
 		}
 
@@ -126,6 +129,8 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		target.innerHTML = svg;
 
 		this.lastSvg = target.querySelector('svg');
+
+		this.scale();
 	}
 
 	private generateSVG(generator: GeneratorInterface2D): string {
@@ -159,30 +164,24 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		return text;
 	}
 
-	public setScale(scale: number) {
-		const svgc = document.getElementById('svg_circle');
-		if (!svgc) {
+	private scale() {
+		if (!this.lastSvg) {
 			throw new Error("Error finding svg_circle");
 		}
-		const h = svgc.getAttribute('data-h');
-		const w = svgc.getAttribute('data-w');
+		const h = this.lastSvg.getAttribute('data-h');
+		const w = this.lastSvg.getAttribute('data-w');
 		if (!h || !w) {
 			throw new Error("error getting requisite data attributes");
 		}
 
 		const aspect = parseInt(h, 10) / parseInt(w, 10);
 
-		const scaleX = scale;
-		const scaleY = scale * aspect;
+		const scaleX = this.scaleSize;
+		const scaleY = this.scaleSize * aspect;
 
-		// svgc.set('width', scale + 'px').set({
-		// 	'width' : scaleX + 'px',
-		// 	'height': scaleY + 'px'
-		// }).setStyles({'width': scaleX, 'height': scaleY});
-
-		svgc.setAttribute('width', scaleX + 'px');
-		svgc.setAttribute('height', scaleY + 'px');
-		svgc.style.width = scaleX + 'px';
-		svgc.style.height = scaleY + 'px';
+		this.lastSvg.setAttribute('width', scaleX + 'px');
+		this.lastSvg.setAttribute('height', scaleY + 'px');
+		this.lastSvg.style.width = scaleX + 'px';
+		this.lastSvg.style.height = scaleY + 'px';
 	}
 }
