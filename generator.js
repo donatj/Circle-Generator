@@ -1,3 +1,7 @@
+/**
+ * @license Pixel Circle Generator Copyright Jesse G. Donat and other contributors.
+ * Released under MIT license, https://github.com/donatj/Circle-Generator/blob/master/LICENSE.md
+ */
 window.addEvent('domready', function() {
 	"use strict";
 
