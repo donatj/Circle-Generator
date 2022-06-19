@@ -4,6 +4,10 @@ import { Control, ControlAwareInterface, makeButtonControl, makeInputControl } f
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Misc";
 
+function isSvgElement(el: Node): el is SVGElement {
+	return (el as SVGElement).namespaceURI === "http://www.w3.org/2000/svg";
+}
+
 function svgToCanvas(svgData: string): Promise<HTMLCanvasElement> {
 	const canvas = document.createElement("canvas");
 	const ctx = canvas.getContext("2d");
@@ -83,7 +87,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	private hasInlineSvg(): boolean {
 		const div = document.createElement('div');
 		div.innerHTML = '<svg/>';
-		return (div.firstChild && div.firstChild.namespaceURI) == 'http://www.w3.org/2000/svg';
+		return Boolean(div.firstChild && isSvgElement(div.firstChild));
 	}
 
 	private add(x: number, y: number, width: number, height: number, filled: boolean): string {
