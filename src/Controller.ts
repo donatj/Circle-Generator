@@ -51,7 +51,7 @@ export function makeInputControl(
 		clearTimeout(timeout);
 		timeout = setTimeout(() => {
 			onAlter(controlElm.value);
-		}, 5);
+		}, 50) as unknown as number; // TODO: TypeScript bug
 	};
 	controlElm.addEventListener("change", handler);
 	controlElm.addEventListener("keyup", handler);
