@@ -1,3 +1,6 @@
+.PHONY: build
+build lib/generator.js:
+	npx webpack --mode production
 
 .PHONY: lint
 lint:
