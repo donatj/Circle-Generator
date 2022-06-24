@@ -2,7 +2,7 @@ import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
 import { RendererInterface } from "./RendererInterface";
 import { Control, ControlAwareInterface, makeButtonControl, makeInputControl } from "../Controller";
 import { EventEmitter } from "../EventEmitter";
-import { xor } from "../Misc";
+import { xor } from "../Math";
 import { StateItem } from "../State";
 
 function isSvgElement(el: Node): el is SVGElement {
