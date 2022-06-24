@@ -1,7 +1,7 @@
 .PHONY: build
 build: lib/generator.js style.css
 
-lib/generator.js:
+lib/generator.js: $(shell find src -name "*.ts")
 	npx webpack --mode production
 
 style.css: style.scss
