@@ -7,6 +7,12 @@ lib/generator.js: $(shell find src -name "*.ts")
 style.css: style.scss
 	npx sass style.scss:style.css
 
+dist: clean lib/generator.js style.css index.html
+	mkdir -p dist/lib
+	cp lib/generator.js dist/lib/generator.js
+	cp style.css index.html dist
+
+.PHONY: clean
 clean:
 	rm -rf lib style.css
 
