@@ -134,7 +134,6 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 	}
 
 	private setForce(force: boolean): void {
-		console.log(force);
 		this.state.set('force', force);
 		this.force = force;
 	}
