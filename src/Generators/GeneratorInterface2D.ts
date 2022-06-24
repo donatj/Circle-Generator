@@ -6,7 +6,7 @@ export type Bounds = {
 
 	minY: number,
 	maxY: number,
-}
+};
 
 export interface GeneratorInterface2D {
 

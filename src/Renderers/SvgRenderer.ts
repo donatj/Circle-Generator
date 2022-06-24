@@ -26,7 +26,7 @@ function svgToCanvas(svgData: string): Promise<HTMLCanvasElement> {
 			ctx.drawImage(img, 0, 0);
 
 			resolve(canvas);
-		}
+		};
 	});
 
 	return p;
@@ -99,12 +99,15 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const midx = (width / 2) - .5;
 		const midy = (height / 2) - .5;
 
+		let extra = "";
 		if (filled) {
 			if (x == midx || y == midy) {
 				color = '#808080';
 			} else {
 				color = '#FF0000';
 			}
+
+			extra = 'onclick="this.style.fill=\'#7711AA\'"';
 		} else if (x == midx || y == midy) {
 			if (xor(!!(x & 1), !!(y & 1))) {
 				color = '#EEEEEE';
@@ -115,7 +118,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 		if (color) {
 			const fillstr = (filled ? 'filled' : '');
-			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${fillstr}" data-x="${x}" data-y="${y}"/>`;
+			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${fillstr}" data-x="${x}" data-y="${y}" ${extra}/>`;
 		}
 
 		return '';
@@ -131,6 +134,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const svg = this.generateSVG(generator);
 
 		target.innerHTML = svg;
+		//const svgElm = target.firstChild as SVGElement;
 
 		this.lastSvg = target.querySelector('svg');
 
@@ -146,7 +150,8 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const svgWidth = this.dFull * (width + 1);
 		const svgHeight = this.dFull * (height + 1);
 
-		let text = `<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="${svgWidth}" data-h="${svgHeight}" width="${svgWidth}px" height="${svgHeight}px" viewBox="0 0 ${svgWidth} ${svgHeight}">`;
+		let text = `<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="${svgWidth}" data-h="${svgHeight}" 
+			width="${svgWidth}px" height="${svgHeight}px" viewBox="0 0 ${svgWidth} ${svgHeight}">`;
 
 		for (let y = bounds.minY; y < bounds.maxY; y++) {
 			for (let x = bounds.minX; x < bounds.maxX; x++) {
@@ -155,14 +160,16 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		}
 
 		for (let ix = 0; ix < svgWidth; ix += this.dFull) {
-			text += `<rect x="${(ix + (this.dWidth / 2))}" y="0" fill="#bbbbbb" width="${this.dBorder}" height="${svgHeight}" opacity=".4" />`;
+			const fill = "#bbbbbb";
+			text += `<rect x="${(ix + (this.dWidth / 2))}" y="0" fill="${fill}" width="${this.dBorder}" height="${svgHeight}" opacity=".4" />`;
 		}
 
 		for (let iy = 0; iy < svgHeight; iy += this.dFull) {
-			text += `<rect x="0" y="${(iy + (this.dWidth / 2))}" fill="#bbbbbb" width="${svgWidth}" opacity=".6" height="${this.dBorder}"/>`;
+			const fill = "#bbbbbb";
+			text += `<rect x="0" y="${(iy + (this.dWidth / 2))}" fill="${fill}" width="${svgWidth}" opacity=".6" height="${this.dBorder}"/>`;
 		}
 
-		text += '<line id="selection_line" x1="0" y1="0" x2="0" y2="0" style="stroke:rgb(0,255,0);" stroke-width="3" stroke-linecap="round" opacity="0" />';
+		// text += '<line id="selection_line" x1="0" y1="0" x2="0" y2="0" style="stroke:rgb(0,255,0);" stroke-width="3" stroke-linecap="round" opacity="0" />';
 		text += '</svg>';
 
 		return text;

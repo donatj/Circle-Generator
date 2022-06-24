@@ -18,4 +18,4 @@ export type Download = {
 	type: string,
 	extension: string,
 	getBlob: () => string,
-}
+};

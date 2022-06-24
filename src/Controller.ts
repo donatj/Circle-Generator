@@ -1,12 +1,13 @@
 import { GeneratorInterface2D } from "./Generators/GeneratorInterface2D";
 import { SvgRenderer } from "./Renderers/SvgRenderer";
 import { RendererInterface } from "./Renderers/RendererInterface";
-import { Circle } from "./Generators/Circle";
+import { Circle, CircleModes } from "./Generators/Circle";
+import { StateHandler } from "./State";
 
 export interface Control<T extends HTMLElement = HTMLElement> {
-	element: T,
-	label: string | null,
-	group: string,
+	element: T;
+	label: string | null;
+	group: string;
 }
 
 export interface ControlAwareInterface {
@@ -39,12 +40,12 @@ export function makeInputControl(
 	group: string,
 	label: string | null,
 	type: string,
-	value: string,
+	value: string | number,
 	onAlter: (val: string) => void,
 ): Control<HTMLInputElement> {
 	const controlElm = document.createElement("input");
 	controlElm.type = type;
-	controlElm.value = value;
+	controlElm.value = `${value}`;
 
 	let timeout: number;
 	const handler = () => {
@@ -66,15 +67,22 @@ export function makeInputControl(
 
 export class MainController {
 
-	private generator: GeneratorInterface2D = new Circle();
+	private state = new StateHandler();
+
+	private generator: GeneratorInterface2D = new Circle(this.state.get("circle", {
+		mode: CircleModes.thick,
+		width: 5,
+		height: 5,
+		force: true,
+	}));
 	private renderer: RendererInterface = new SvgRenderer();
 
 	constructor(private controls: HTMLElement, private result: HTMLElement) {
 		this.renderControls();
 		this.render();
 
-		this.generator.changeEmitter.add(() => { this.render() });
-		this.renderer.changeEmitter.add(() => { this.render() });
+		this.generator.changeEmitter.add(() => { this.render(); });
+		this.renderer.changeEmitter.add(() => { this.render(); });
 	}
 
 	private renderControls() {
