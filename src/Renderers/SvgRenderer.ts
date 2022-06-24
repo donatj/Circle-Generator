@@ -3,6 +3,7 @@ import { RendererInterface } from "./RendererInterface";
 import { Control, ControlAwareInterface, makeButtonControl, makeInputControl } from "../Controller";
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Misc";
+import { StateItem } from "../State";
 
 function isSvgElement(el: Node): el is SVGElement {
 	return (el as SVGElement).namespaceURI === "http://www.w3.org/2000/svg";
@@ -32,6 +33,10 @@ function svgToCanvas(svgData: string): Promise<HTMLCanvasElement> {
 	return p;
 }
 
+interface SvgRendererState {
+	scale: number;
+}
+
 export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	private dWidth = 5;
@@ -42,15 +47,18 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	public scaleSize = 544;
 
+	constructor(private state: StateItem<SvgRendererState>) {
+		this.scaleSize = state.get('scale');
+	}
+
+
 	public getControls(): Control[] {
 
-		const scale = makeInputControl('Render', 'scale', 'range', `${this.scaleSize}`, (val) => {
+		const scale = makeInputControl('Render', 'scale', 'range', this.scaleSize, (val) => {
 			this.scaleSize = parseInt(val, 10);
+			this.state.set('scale', this.scaleSize);
 			this.scale();
-		});
-
-		scale.element.min = "50";
-		scale.element.max = "3000";
+		}, { min: "50", max: "3000" });
 
 		return [
 			scale,

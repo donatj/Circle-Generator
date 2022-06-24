@@ -73,15 +73,18 @@ export function makeInputControl(
 
 export class MainController {
 
-	private state = new StateHandler();
+	private stateMananger = new StateHandler();
 
-	private generator: GeneratorInterface2D = new Circle(this.state.get("circle", {
+	private generator: GeneratorInterface2D = new Circle(this.stateMananger.get("circle", {
 		mode: CircleModes.thick,
 		width: 5,
 		height: 5,
 		force: true,
 	}));
-	private renderer: RendererInterface = new SvgRenderer();
+	
+	private renderer: RendererInterface = new SvgRenderer(this.stateMananger.get("svgRenderer", {
+		scale: 544,
+	}));
 
 	constructor(private controls: HTMLElement, private result: HTMLElement) {
 		this.renderControls();
