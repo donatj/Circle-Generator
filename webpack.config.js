@@ -4,7 +4,7 @@ module.exports = {
   entry: './src/Controller.ts',
   optimization: {
     // We no not want to minimize our code.
-    minimize: false
+    minimize: true
   },
   module: {
     rules: [
