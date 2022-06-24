@@ -42,8 +42,14 @@ export function makeInputControl(
 	type: string,
 	value: string | number,
 	onAlter: (val: string) => void,
+	attributes?: Partial<HTMLInputElement>
 ): Control<HTMLInputElement> {
 	const controlElm = document.createElement("input");
+
+	if(attributes) {
+		Object.assign(controlElm, attributes);
+	}
+
 	controlElm.type = type;
 	controlElm.value = `${value}`;
 
