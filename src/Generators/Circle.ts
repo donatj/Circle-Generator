@@ -115,7 +115,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 			this.forceCircleControl,
 			this.widthControl,
 			this.heightControl,
-			{ element: this.circleModeControlElm, label: 'border', group: 'Shape' },
+			{ element: this.circleModeControlElm, label: 'border', group: 'Render' },
 		];
 	}
 
