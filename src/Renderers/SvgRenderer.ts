@@ -1,6 +1,6 @@
 import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
 import { RendererInterface } from "./RendererInterface";
-import { Control, ControlAwareInterface, makeButtonControl, makeInputControl } from "../Controller";
+import { Control, ControlAwareInterface, InfoControl, makeButtonControl, makeInputControl } from "../Controller";
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Math";
 import { StateItem } from "../State";
@@ -42,6 +42,11 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	private dWidth = 5;
 	private dBorder = 1;
 	private dFull = this.dWidth + this.dBorder;
+
+	private blocks = new InfoControl("Details", "blocks");
+
+	private stacksOf64 = new InfoControl("Details", "stacks of 64");
+	private stacksOf16 = new InfoControl("Details", "stacks of 16");
 
 	public readonly changeEmitter = new EventEmitter<void>();
 
@@ -89,6 +94,10 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 				document.body.appendChild(a);
 				a.click();
 			}),
+
+			this.blocks,
+			this.stacksOf64,
+			this.stacksOf16,
 		];
 	}
 
@@ -142,7 +151,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const svg = this.generateSVG(generator);
 
 		target.innerHTML = svg;
-		//const svgElm = target.firstChild as SVGElement;
+		// const svgElm = target.firstChild as SVGElement;
 
 		this.lastSvg = target.querySelector('svg');
 
@@ -158,14 +167,24 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const svgWidth = this.dFull * (width + 1);
 		const svgHeight = this.dFull * (height + 1);
 
-		let text = `<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="${svgWidth}" data-h="${svgHeight}" 
+		let text = `<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="${svgWidth}" data-h="${svgHeight}"
 			width="${svgWidth}px" height="${svgHeight}px" viewBox="0 0 ${svgWidth} ${svgHeight}">`;
 
+		let fillCount = 0;
 		for (let y = bounds.minY; y < bounds.maxY; y++) {
 			for (let x = bounds.minX; x < bounds.maxX; x++) {
-				text += this.add(x, y, width, height, generator.isFilled(x, y));
+				const filled = generator.isFilled(x, y);
+				text += this.add(x, y, width, height, filled);
+
+				if (filled) {
+					fillCount++;
+				}
 			}
 		}
+
+		this.blocks.setValue(`${fillCount}`);
+		this.stacksOf64.setValue(`${(fillCount / 64).toFixed(1)}`);
+		this.stacksOf16.setValue(`${(fillCount / 16).toFixed(1)}`);
 
 		for (let ix = 0; ix < svgWidth; ix += this.dFull) {
 			const fill = "#bbbbbb";

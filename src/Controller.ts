@@ -18,6 +18,16 @@ export function isControlAwareInterface(o: any): o is ControlAwareInterface {
 	return o && (typeof o.getControls === "function");
 }
 
+export class InfoControl implements Control<HTMLOutputElement> {
+	public element: HTMLOutputElement = document.createElement("output");
+
+	constructor(public group: string, public label: string | null) {}
+
+	public setValue(value: string) {
+		this.element.value = value;
+	}
+}
+
 export function makeButtonControl(
 	group: string,
 	label: string | null,
@@ -81,7 +91,7 @@ export class MainController {
 		height: 5,
 		force: true,
 	}));
-	
+
 	private renderer: RendererInterface = new SvgRenderer(this.stateMananger.get("svgRenderer", {
 		scale: 544,
 	}));
