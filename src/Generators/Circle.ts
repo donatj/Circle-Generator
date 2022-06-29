@@ -28,9 +28,12 @@ function fatfilled(x: number, y: number, radius: number, ratio: number): boolean
 }
 
 function thinfilled(x: number, y: number, radius: number, ratio: number): boolean {
-	return fatfilled(x, y, radius, ratio) &&
-		!(fatfilled(x + (x > 0 ? 1 : -1), y, radius, ratio)
-			&& fatfilled(x, y + (y > 0 ? 1 : -1), radius, ratio));
+	return filled(x, y, radius, ratio) && !(
+		filled(x + 1, y, radius, ratio) &&
+		filled(x - 1, y, radius, ratio) &&
+		filled(x, y + 1, radius, ratio) &&
+		filled(x, y - 1, radius, ratio)
+	);
 }
 
 interface CircleState {
