@@ -1,0 +1,50 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	font-size: 11px;
+	font-family: monospace;
+}
+
+#controls {
+	display: flex;
+	flex-wrap: wrap;
+
+	> fieldset {
+		border: 1px solid #aaa;
+		border-radius: 3px;
+
+		display: flex;
+		flex-direction: column;
+		
+		align-self: flex-start;
+
+		input[type="number"], input[type="checkbox"], select {
+			box-shadow: inset 0 0 0 2px rgb(204 204 204 / 50%);
+			outline: none;
+			border: 1px solid #ccc;
+			border-radius: 3px;
+			font-size: 1.2em;
+			padding: 3px;
+		}
+	
+		input[type="checkbox"] {
+			width: 20px;
+			height: 20px;
+			float: right;
+		}
+	
+		label {
+			> input[type="number"], input[type="range"], > select {
+				display: block;
+			}
+		}
+
+		button {
+			margin: 1px 0;
+			width: 100%;
+		}
+
+	}
+}
