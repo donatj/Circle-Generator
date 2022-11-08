@@ -59,8 +59,8 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 
 	constructor(private state: StateItem<CircleState>) {
 		this.mode = this.state.get('mode');
-		this.width = this.state.get('width');
-		this.height = this.state.get('height');
+		this.width = Math.min(2000, this.state.get('width'));
+		this.height = Math.min(2000, this.state.get('height'));
 		this.force = this.state.get('force');
 
 		for (const item of Object.keys(CircleModes)) {
