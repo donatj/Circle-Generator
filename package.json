@@ -12,7 +12,7 @@
   "author": "Jesse G. Donat",
   "license": "MIT",
   "devDependencies": {
-    "@types/robust-point-in-polygon": "^1.0.0",
+    "@types/robust-point-in-polygon": "^1.0.2",
     "sass": "^1.56.1",
     "ts-loader": "^8.0.2",
     "tslint": "^6",
