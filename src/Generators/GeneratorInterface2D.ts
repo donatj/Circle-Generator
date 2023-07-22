@@ -10,9 +10,11 @@ export type Bounds = {
 
 export interface GeneratorInterface2D {
 
-	readonly changeEmitter : EventEmitter<any|void>;
+	readonly changeEmitter: EventEmitter<any | void>;
 
 	isFilled(x: number, y: number): boolean;
 	getBounds(): Bounds;
+
+	getDescription(): string;
 
 }

@@ -78,7 +78,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 				const a = document.createElement('a');
 				a.href = dataUrl;
-				a.download = "soup.png";
+				a.download = (this.lastGenerator?.getDescription() || "circle") + "-download.png";
 				document.body.appendChild(a);
 				a.click();
 			}),
@@ -90,7 +90,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 				const a = document.createElement('a');
 				a.href = "data:image/svg+xml;base64," + btoa(this.lastSvg.outerHTML);
-				a.download = "soup.svg";
+				a.download = (this.lastGenerator?.getDescription() || "circle") + "-download.svg";
 				document.body.appendChild(a);
 				a.click();
 			}),
@@ -158,7 +158,10 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		this.scale();
 	}
 
+	private lastGenerator: GeneratorInterface2D | null = null;
+
 	private generateSVG(generator: GeneratorInterface2D): string {
+		this.lastGenerator = generator;
 		const bounds = generator.getBounds();
 
 		const width = bounds.maxX - bounds.minX;

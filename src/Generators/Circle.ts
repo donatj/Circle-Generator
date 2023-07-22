@@ -55,7 +55,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 
 	private widthControl: Control<HTMLInputElement>;
 	private heightControl: Control<HTMLInputElement>;
-	private forceCircleControl : Control<HTMLInputElement>;
+	private forceCircleControl: Control<HTMLInputElement>;
 
 	constructor(private state: StateItem<CircleState>) {
 		this.mode = this.state.get('mode');
@@ -168,6 +168,10 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 				return filled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
 			}
 		}
+	}
+
+	public getDescription(): string {
+		return `Circle-${this.width}x${this.height}`;
 	}
 
 }
