@@ -21,7 +21,7 @@ export function isControlAwareInterface(o: any): o is ControlAwareInterface {
 export class InfoControl implements Control<HTMLOutputElement> {
 	public element: HTMLOutputElement = document.createElement("output");
 
-	constructor(public group: string, public label: string | null) {}
+	constructor(public group: string, public label: string | null) { }
 
 	public setValue(value: string) {
 		this.element.value = value;
@@ -56,7 +56,7 @@ export function makeInputControl(
 ): Control<HTMLInputElement> {
 	const controlElm = document.createElement("input");
 
-	if(attributes) {
+	if (attributes) {
 		Object.assign(controlElm, attributes);
 	}
 
@@ -85,23 +85,71 @@ export class MainController {
 
 	private stateMananger = new StateHandler();
 
-	private generator: GeneratorInterface2D = new Circle(this.stateMananger.get("circle", {
-		mode: CircleModes.thick,
-		width: 5,
-		height: 5,
-		force: true,
-	}));
+	private generator: GeneratorInterface2D;
 
 	private renderer: RendererInterface = new SvgRenderer(this.stateMananger.get("svgRenderer", {
 		scale: 544,
 	}));
 
 	constructor(private controls: HTMLElement, private result: HTMLElement) {
+		let circleState = this.stateMananger.get("circle", {
+			mode: CircleModes.thick,
+			width: 5,
+			height: 5,
+			force: true,
+		});
+
+		const w = circleState.get('width');
+		const h = circleState.get('height');
+
+		this.generator = new Circle(circleState, w, h);
+		this.generator.changeEmitter.add(() => { this.render(); });
+		this.renderer.changeEmitter.add(() => { this.render(); });
+
+		if (w * h > 200 * 200) {
+			// @todo make it's own class/control
+			const dlg = document.createElement('dialog');
+			dlg.innerText = `Do you want to re-render the saved ${w} x ${h} shape? This may take a while or freeze.`;
+
+			const frm = document.createElement('form');
+			frm.method = 'dialog';
+
+			const btnYes = document.createElement('button');
+			btnYes.value = 'yes';
+			btnYes.innerText = 'Yes';
+
+			const btnNo = document.createElement('button');
+			btnNo.innerText = 'No';
+			btnNo.value = 'no';
+
+			frm.appendChild(btnYes);
+			frm.appendChild(btnNo);
+			frm.style.padding = '1em';
+			frm.style.display = 'flex';
+			frm.style.columnGap = '1em';
+
+			dlg.appendChild(frm);
+
+			dlg.addEventListener("close", () => {
+				if (dlg.returnValue === "yes") {
+					this.renderControls();
+					this.render();
+				} else {
+					circleState.set('width', 5);
+					circleState.set('height', 5);
+					window.location.reload();
+				}
+			});
+
+			result.appendChild(dlg);
+			dlg.showModal();
+			return;
+		}
+
 		this.renderControls();
 		this.render();
 
-		this.generator.changeEmitter.add(() => { this.render(); });
-		this.renderer.changeEmitter.add(() => { this.render(); });
+
 	}
 
 	private renderControls() {
