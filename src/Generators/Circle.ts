@@ -2,6 +2,7 @@ import { GeneratorInterface2D, Bounds } from "./GeneratorInterface2D";
 import { ControlAwareInterface, makeInputControl, Control } from "../Controller";
 import { distance } from "../Math";
 import { EventEmitter } from "../EventEmitter";
+import { NeverError } from "../Errors";
 
 export enum CircleModes {
 	thick = 'thick',
@@ -157,8 +158,11 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 			case CircleModes.thin: {
 				return thinfilled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
 			}
-			default: {
+			case CircleModes.filled: {
 				return filled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
+			}
+			default: {
+				throw new NeverError(this.mode);
 			}
 		}
 	}
