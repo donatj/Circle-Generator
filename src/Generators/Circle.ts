@@ -2,7 +2,6 @@ import { GeneratorInterface2D, Bounds } from "./GeneratorInterface2D";
 import { ControlAwareInterface, makeInputControl, Control } from "../Controller";
 import { distance } from "../Math";
 import { EventEmitter } from "../EventEmitter";
-import { StateItem } from "../State";
 
 export enum CircleModes {
 	thick = 'thick',
@@ -47,21 +46,18 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 
 	private circleModeControlElm = document.createElement('select');
 
-	public readonly changeEmitter = new EventEmitter<void>();
-
-	private width: number;
-	private height: number;
-	private force: boolean;
+	public readonly changeEmitter = new EventEmitter<{ event: string, state: CircleState }>();
 
 	private widthControl: Control<HTMLInputElement>;
 	private heightControl: Control<HTMLInputElement>;
 	private forceCircleControl: Control<HTMLInputElement>;
 
-	constructor(private state: StateItem<CircleState>, width: number, height: number) {
-		this.mode = this.state.get('mode');
-		this.width = width;
-		this.height = height;
-		this.force = this.state.get('force');
+	constructor(
+		private width: number, 
+		private height: number, 
+		private mode : CircleModes, 
+		private force : boolean,
+	) {
 
 		for (const item of Object.keys(CircleModes)) {
 			const opt = document.createElement('option');
@@ -75,39 +71,54 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 
 		this.circleModeControlElm.addEventListener('change', () => {
 			this.setMode(this.circleModeControlElm.value as CircleModes);
-			this.changeEmitter.trigger();
+
+			this.triggerChange('mode');
 		});
 
 		this.widthControl = makeInputControl('Shape', 'width', "number", this.width, () => {
 			if (this.force) {
 				this.heightControl.element.value = this.widthControl.element.value;
-				this.setHeight(parseInt(this.widthControl.element.value, 10));
+				this.height = parseInt(this.widthControl.element.value, 10);
 			}
-			this.setWidth(parseInt(this.widthControl.element.value, 10));
-			this.changeEmitter.trigger();
+			this.width = parseInt(this.widthControl.element.value, 10);
+
+			this.triggerChange('width');
 		});
 
 		this.heightControl = makeInputControl('Shape', 'height', "number", this.height, () => {
 			if (this.force) {
 				this.widthControl.element.value = this.heightControl.element.value;
-				this.setWidth(parseInt(this.heightControl.element.value, 10));
+				this.width = parseInt(this.heightControl.element.value, 10);
 			}
-			this.setHeight(parseInt(this.heightControl.element.value, 10));
-			this.changeEmitter.trigger();
+			this.height = parseInt(this.heightControl.element.value, 10);
+
+			this.triggerChange('height');
 		});
 
 		this.forceCircleControl = makeInputControl('Shape', 'Force Circle', "checkbox", "1", () => {
 			// this.heightControl.element.value = this.widthControl.element.value;
-			this.setForce(this.forceCircleControl.element.checked);
+			this.force = this.forceCircleControl.element.checked;
 
 			// There's gotta be a cleaner way to do this, but this works for now avoiding recursive event calls
-			this.setHeight(this.width);
+			this.height = this.width;
 			this.heightControl.element.value = this.widthControl.element.value;
 
-			this.changeEmitter.trigger();
+			this.triggerChange('force')
 		});
 
 		this.forceCircleControl.element.checked = this.force;
+	}
+
+	private triggerChange(event: string): void {
+		this.changeEmitter.trigger({
+			event,
+			state: {
+				mode: this.mode,
+				width: this.width,
+				height: this.height,
+				force: this.force,
+			}
+		});
 	}
 
 	public getControls(): Control[] {
@@ -119,26 +130,8 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 		];
 	}
 
-	private mode: CircleModes = CircleModes.thick;
-
 	private setMode(mode: CircleModes): void {
-		this.state.set('mode', mode);
 		this.mode = mode;
-	}
-
-	private setWidth(width: number): void {
-		this.state.set('width', width);
-		this.width = width;
-	}
-
-	private setHeight(height: number): void {
-		this.state.set('height', height);
-		this.height = height;
-	}
-
-	private setForce(force: boolean): void {
-		this.state.set('force', force);
-		this.force = force;
 	}
 
 	public getBounds(): Bounds {

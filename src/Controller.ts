@@ -102,9 +102,21 @@ export class MainController {
 		const w = circleState.get('width');
 		const h = circleState.get('height');
 
-		this.generator = new Circle(circleState, w, h);
+		const circle = new Circle(
+			w, h,
+			circleState.get('mode'),
+			circleState.get('force'),
+		);
+		this.generator = circle;
 		this.generator.changeEmitter.add(() => { this.render(); });
 		this.renderer.changeEmitter.add(() => { this.render(); });
+
+		circle.changeEmitter.add((e) => {
+			circleState.set('mode', e.state.mode);
+			circleState.set('width', e.state.width);
+			circleState.set('height', e.state.height);
+			circleState.set('force', e.state.force);
+		});
 
 		if (w * h > 200 * 200) {
 			// @todo make it's own class/control
