@@ -3,7 +3,7 @@ import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
 
 export interface RendererInterface {
 
-	readonly changeEmitter : EventEmitter<void>;
+	readonly changeEmitter : EventEmitter<any>;
 
 	render(target: HTMLElement, generator: GeneratorInterface2D): void;
 

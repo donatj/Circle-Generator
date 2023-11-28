@@ -87,12 +87,20 @@ export class MainController {
 
 	private generator: GeneratorInterface2D;
 
-	private renderer: RendererInterface = new SvgRenderer(this.stateMananger.get("svgRenderer", {
-		scale: 544,
-	}));
+	private renderer: RendererInterface;
 
 	constructor(private controls: HTMLElement, private result: HTMLElement) {
-		let circleState = this.stateMananger.get("circle", {
+		const svgState = this.stateMananger.get("svgRenderer", {
+			scale: 544,
+		});
+		const svgRenderer = new SvgRenderer(svgState.get('scale'));
+		this.renderer = svgRenderer;
+
+		svgRenderer.changeEmitter.add((e) => {
+			svgState.set('scale', e.scale);
+		});
+
+		const circleState = this.stateMananger.get("circle", {
 			mode: CircleModes.thick,
 			width: 5,
 			height: 5,

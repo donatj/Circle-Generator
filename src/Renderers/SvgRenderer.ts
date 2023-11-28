@@ -3,34 +3,10 @@ import { RendererInterface } from "./RendererInterface";
 import { Control, ControlAwareInterface, InfoControl, makeButtonControl, makeInputControl } from "../Controller";
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Math";
-import { StateItem } from "../State";
+import { svgToCanvas } from "../Utils";
 
 function isSvgElement(el: Node): el is SVGElement {
 	return (el as SVGElement).namespaceURI === "http://www.w3.org/2000/svg";
-}
-
-function svgToCanvas(svgData: string): Promise<HTMLCanvasElement> {
-	const canvas = document.createElement("canvas");
-	const ctx = canvas.getContext("2d");
-	if (ctx === null) {
-		throw new Error("Could not create canvas context");
-	}
-
-	const p = new Promise<HTMLCanvasElement>((resolve) => {
-		const img = document.createElement("img");
-		img.src = "data:image/svg+xml;base64," + btoa(svgData);
-
-		img.onload = () => {
-			canvas.width = img.width;
-			canvas.height = img.height;
-
-			ctx.drawImage(img, 0, 0);
-
-			resolve(canvas);
-		};
-	});
-
-	return p;
 }
 
 interface SvgRendererState {
@@ -48,21 +24,23 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	private stacksOf64 = new InfoControl("Details", "stacks of 64");
 	private stacksOf16 = new InfoControl("Details", "stacks of 16");
 
-	public readonly changeEmitter = new EventEmitter<void>();
+	public readonly changeEmitter = new EventEmitter<SvgRendererState>();
 
-	public scaleSize = 544;
+	constructor(private scaleSize : number) {}
 
-	constructor(private state: StateItem<SvgRendererState>) {
-		this.scaleSize = state.get('scale');
+	private triggerChange() {
+		this.changeEmitter.trigger({
+			scale: this.scaleSize,
+		});
 	}
-
 
 	public getControls(): Control[] {
 
 		const scale = makeInputControl('Render', 'scale', 'range', this.scaleSize, (val) => {
 			this.scaleSize = parseInt(val, 10);
-			this.state.set('scale', this.scaleSize);
 			this.scale();
+
+			this.triggerChange();
 		}, { min: "50", max: "3000" });
 
 		return [
