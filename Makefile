@@ -1,15 +1,15 @@
 .PHONY: build
-build: lib/generator.js style.css
+build: lib/Controller.js style.css
 
-lib/generator.js: $(shell find src -name "*.ts")
-	npx webpack --mode production
+lib/Controller.js: $(shell find src -name "*.ts")
+	npx rollup --config rollup.config.js
 
 style.css: style.scss
 	npx sass style.scss:style.css
 
-dist: clean lib/generator.js style.css index.html
+dist: clean lib/Controller.js style.css index.html
 	mkdir -p dist/lib
-	cp lib/generator.js dist/lib/generator.js
+	cp lib/Controller.js dist/lib/Controller.js
 	cp style.css index.html dist
 
 .PHONY: clean
@@ -18,5 +18,5 @@ clean:
 
 .PHONY: lint
 lint:
-	./node_modules/.bin/tslint -c tslint.json 'src/**/*.ts' --fix
+	npx tslint -c tslint.json 'src/**/*.ts' --fix
 
