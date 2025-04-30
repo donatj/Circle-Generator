@@ -5,13 +5,13 @@
 	<meta charset="utf-8" />
 	<title>Pixel Circle Generator</title>
 	<link rel="stylesheet" href="style.css" />
-	<script src="lib/generator.js"></script>
 </head>
 
 <body>
 	<div id="controls"></div>
 	<pre id="result"></pre>
-	<script>
+	<script type="module">
+		import { MainController } from './lib/generator.js';
 		new PixelGenerator.MainController(
 			document.getElementById("controls"),
 			document.getElementById("result"),
