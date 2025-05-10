@@ -26,7 +26,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	public readonly changeEmitter = new EventEmitter<SvgRendererState>();
 
-	constructor(private scaleSize : number) {}
+	constructor(private scaleSize: number) { }
 
 	private triggerChange() {
 		this.changeEmitter.trigger({
@@ -167,17 +167,27 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		this.stacksOf64.setValue(`${(fillCount / 64).toFixed(1)}`);
 		this.stacksOf16.setValue(`${(fillCount / 16).toFixed(1)}`);
 
-		for (let ix = 0; ix < svgWidth; ix += this.dFull) {
-			const fill = "#bbbbbb";
-			text += `<rect x="${(ix + (this.dWidth / 2))}" y="0" fill="${fill}" width="${this.dBorder}" height="${svgHeight}" opacity=".4" />`;
+		for (let ix = 0; ix <= width; ix += 1) {
+			let fill = "#bbbbbb";
+			let opacity = ".4";
+			if (ix == width / 2) {
+				fill = "#808080";
+				opacity = "1";
+			}
+
+			text += `<rect x="${(ix * this.dFull) + (this.dWidth / 2)}" y="0" fill="${fill}" width="${this.dBorder}" height="${svgHeight}" opacity="${opacity}" />`;
 		}
 
-		for (let iy = 0; iy < svgHeight; iy += this.dFull) {
-			const fill = "#bbbbbb";
-			text += `<rect x="0" y="${(iy + (this.dWidth / 2))}" fill="${fill}" width="${svgWidth}" opacity=".6" height="${this.dBorder}"/>`;
+		for (let iy = 0; iy <= height; iy += 1) {
+			let fill = "#bbbbbb";
+			let opacity = ".4";
+			if (iy == height / 2) {
+				fill = "#808080";
+				opacity = "1";
+			}
+			text += `<rect x="0" y="${(iy * this.dFull) + (this.dWidth / 2)}" fill="${fill}" width="${svgWidth}" opacity="${opacity}" height="${this.dBorder}" />`;
 		}
 
-		// text += '<line id="selection_line" x1="0" y1="0" x2="0" y2="0" style="stroke:rgb(0,255,0);" stroke-width="3" stroke-linecap="round" opacity="0" />';
 		text += '</svg>';
 
 		return text;
