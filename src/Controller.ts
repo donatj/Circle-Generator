@@ -1,3 +1,9 @@
+/*!
+Copyright (c) Jesse G. Donat and contributors. Licensed under the MIT License.
+
+This notice may not be removed or altered from any source distribution.
+*/
+
 import { GeneratorInterface2D } from "./Generators/GeneratorInterface2D";
 import { SvgRenderer } from "./Renderers/SvgRenderer";
 import { RendererInterface } from "./Renderers/RendererInterface";

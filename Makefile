@@ -2,7 +2,7 @@
 build: lib/generator.js style.css
 
 lib/generator.js: $(shell find src -name "*.ts")
-	npx webpack --mode production
+	npx rollup --config rollup.config.js
 
 style.css: style.scss
 	npx sass style.scss:style.css
@@ -14,9 +14,10 @@ dist: clean lib/generator.js style.css index.html
 
 .PHONY: clean
 clean:
+	rm -rf dist
 	rm -rf lib style.css
 
 .PHONY: lint
 lint:
-	./node_modules/.bin/tslint -c tslint.json 'src/**/*.ts' --fix
+	npx tslint -c tslint.json 'src/**/*.ts' --fix
 

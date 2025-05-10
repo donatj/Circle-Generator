@@ -53,9 +53,9 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 	private forceCircleControl: Control<HTMLInputElement>;
 
 	constructor(
-		private width: number, 
-		private height: number, 
-		private mode : CircleModes, 
+		private width: number,
+		private height: number,
+		private mode : CircleModes,
 		private force : boolean,
 	) {
 
