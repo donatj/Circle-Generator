@@ -179,42 +179,38 @@ export class MainController {
 	}
 
 	private makeResultDraggable() {
-		let down = false;
-		let startX = 0, startY = 0;
+		let isDown = false;
+		const el = this.result;
+	
+		el.style.cursor = "grab";
+		el.style.userSelect = "none";
+		el.style.touchAction = "none";
+	
+		el.addEventListener("pointerdown", (e: PointerEvent) => {
+			let target = e.target as HTMLElement|SVGElement|null;
+			if (target && target.classList.contains("filled")) {
+				return;
+			}
 
-		this.result.style.cursor = "grab";
-		this.result.style.userSelect = "none";
-
-		const onPointerDown = (e: PointerEvent) => {
 			if (e.pointerType !== "mouse") return;
-			this.result.setPointerCapture(e.pointerId);
-			down = true;
-			startX = e.pageX;
-			startY = e.pageY;
-			this.result.style.cursor = "grabbing";
-			this.result.style.userSelect = "none";
-		}
-
-		const onPointerMove = (e: PointerEvent) => {
-			if (!down || e.pointerType !== "mouse") return;
-			this.result.scrollBy(startX - e.pageX, startY - e.pageY);
-			startX = e.pageX;
-			startY = e.pageY;
-		}
-
-		const onPointerUp = (e: PointerEvent) => {
+			isDown = true;
+			el.setPointerCapture(e.pointerId);
+			el.style.cursor = "grabbing";
+		});
+	
+		el.addEventListener("pointermove", (e: PointerEvent) => {
+			if (!isDown) return;
+			el.scrollBy(-e.movementX, -e.movementY);
+		});
+	
+		el.addEventListener("pointerup", (e: PointerEvent) => {
 			if (e.pointerType !== "mouse") return;
-			down = false;
-			this.result.releasePointerCapture(e.pointerId);
-			this.result.style.cursor = "grab";
-			this.result.style.userSelect = "auto";
-		}
-
-		this.result.addEventListener("pointerdown", onPointerDown);
-		this.result.addEventListener("pointermove", onPointerMove);
-		// catch the up anywhere
-		document.addEventListener("pointerup", onPointerUp);
+			isDown = false;
+			el.releasePointerCapture(e.pointerId);
+			el.style.cursor = "grab";
+		});
 	}
+	
 
 	private renderControls() {
 		this.controls.innerHTML = '';

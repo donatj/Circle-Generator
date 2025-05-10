@@ -102,7 +102,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 				color = '#FF0000';
 			}
 
-			extra = 'onclick="this.style.fill=\'#7711AA\'"';
+			extra = `onclick="this.classList.toggle('built');"`;
 		} else if (x == midx || y == midy) {
 			if (xor(!!(x & 1), !!(y & 1))) {
 				color = '#AAAAAA';
@@ -153,7 +153,26 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 			xmlns="http://www.w3.org/2000/svg"
 			data-w="${svgWidth}" data-h="${svgHeight}"
 			width="${svgWidth}px" height="${svgHeight}px"
-			viewBox="0 0 ${svgWidth} ${svgHeight}">`;
+			viewBox="0 0 ${svgWidth} ${svgHeight}">
+			<style>
+				.filled {
+					cursor: pointer;
+					transition: fill 0.3s;
+				}
+
+				.filled:hover {
+					fill: #7711AA;
+				}
+
+				.filled.built {
+					fill: #7711AA;
+				}
+
+				.filled.built:hover {
+					fill: inherit;
+				}
+			</style>
+		`;
 
 		let fillCount = 0;
 		for (let y = minY; y < maxY; y++) {
