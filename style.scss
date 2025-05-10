@@ -3,8 +3,27 @@
 }
 
 body {
-	font-size: 12px;
-	font-family: monospace;
+	font-size: 13px;
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+
+	margin: 0;
+
+	display: grid;
+	grid-template-areas: "controls" "result";
+	grid-template-rows: min-content auto;
+
+	// width: 100vw;
+	height: 100vh;
+
+	> #controls {
+		grid-area: controls;
+	}
+	> #result {
+		grid-area: result;
+		overflow: auto;
+		padding: .5em;
+	}
+
 }
 
 #controls {
@@ -18,7 +37,7 @@ body {
 		display: flex;
 		flex-direction: column;
 		
-		align-self: flex-start;
+		align-self: stretch;
 
 		input[type="number"], input[type="checkbox"], select {
 			box-shadow: inset 0 0 0 2px rgb(204 204 204 / 50%);
