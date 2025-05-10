@@ -211,10 +211,16 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 			throw new Error("error getting requisite data attributes");
 		}
 
-		const aspect = parseInt(h, 10) / parseInt(w, 10);
+		const wn = parseInt(w, 10);
+		const hn = parseInt(h, 10);
 
-		const scaleX = this.scaleSize;
-		const scaleY = this.scaleSize * aspect;
+		const aspect = hn / wn;
+
+		var scale = this.scaleSize;
+		scale = scale * (wn * .01);
+
+		const scaleX = scale;
+		const scaleY = scale * aspect;
 
 		this.lastSvg.setAttribute('width', scaleX + 'px');
 		this.lastSvg.setAttribute('height', scaleY + 'px');
