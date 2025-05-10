@@ -175,7 +175,45 @@ export class MainController {
 		this.renderControls();
 		this.render();
 
+		this.makeResultDraggable();
+	}
 
+	private makeResultDraggable() {
+		let down = false;
+		let startX = 0, startY = 0;
+
+		this.result.style.cursor = "grab";
+		this.result.style.userSelect = "none";
+
+		const onPointerDown = (e: PointerEvent) => {
+			if (e.pointerType !== "mouse") return;
+			this.result.setPointerCapture(e.pointerId);
+			down = true;
+			startX = e.pageX;
+			startY = e.pageY;
+			this.result.style.cursor = "grabbing";
+			this.result.style.userSelect = "none";
+		}
+
+		const onPointerMove = (e: PointerEvent) => {
+			if (!down || e.pointerType !== "mouse") return;
+			this.result.scrollBy(startX - e.pageX, startY - e.pageY);
+			startX = e.pageX;
+			startY = e.pageY;
+		}
+
+		const onPointerUp = (e: PointerEvent) => {
+			if (e.pointerType !== "mouse") return;
+			down = false;
+			this.result.releasePointerCapture(e.pointerId);
+			this.result.style.cursor = "grab";
+			this.result.style.userSelect = "auto";
+		}
+
+		this.result.addEventListener("pointerdown", onPointerDown);
+		this.result.addEventListener("pointermove", onPointerMove);
+		// catch the up anywhere
+		document.addEventListener("pointerup", onPointerUp);
 	}
 
 	private renderControls() {
