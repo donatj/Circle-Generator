@@ -26,7 +26,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	public readonly changeEmitter = new EventEmitter<SvgRendererState>();
 
-	constructor(private scaleSize : number) {}
+	constructor(private scaleSize: number) { }
 
 	private triggerChange() {
 		this.changeEmitter.trigger({
@@ -97,7 +97,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		let extra = "";
 		if (filled) {
 			if (x == midx || y == midy) {
-				color = '#808080';
+				color = '#880000';
 			} else {
 				color = '#FF0000';
 			}
@@ -105,9 +105,9 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 			extra = 'onclick="this.style.fill=\'#7711AA\'"';
 		} else if (x == midx || y == midy) {
 			if (xor(!!(x & 1), !!(y & 1))) {
-				color = '#EEEEEE';
+				color = '#AAAAAA';
 			} else {
-				color = '#F8F8F8';
+				color = '#CCCCCC';
 			}
 		}
 
@@ -140,26 +140,27 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	private generateSVG(generator: GeneratorInterface2D): string {
 		this.lastGenerator = generator;
-		const bounds = generator.getBounds();
-
-		const width = bounds.maxX - bounds.minX;
-		const height = bounds.maxY - bounds.minY;
-
+		const { minX, maxX, minY, maxY } = generator.getBounds();
+		const width = maxX - minX;
+		const height = maxY - minY;
 		const svgWidth = this.dFull * (width + 1);
 		const svgHeight = this.dFull * (height + 1);
+		const half = this.dWidth / 2;
+		const centerX = width / 2;
+		const centerY = height / 2;
 
-		let text = `<svg id="svg_circle" xmlns="http://www.w3.org/2000/svg" data-w="${svgWidth}" data-h="${svgHeight}"
-			width="${svgWidth}px" height="${svgHeight}px" viewBox="0 0 ${svgWidth} ${svgHeight}">`;
+		let text = `<svg id="svg_circle"
+			xmlns="http://www.w3.org/2000/svg"
+			data-w="${svgWidth}" data-h="${svgHeight}"
+			width="${svgWidth}px" height="${svgHeight}px"
+			viewBox="0 0 ${svgWidth} ${svgHeight}">`;
 
 		let fillCount = 0;
-		for (let y = bounds.minY; y < bounds.maxY; y++) {
-			for (let x = bounds.minX; x < bounds.maxX; x++) {
+		for (let y = minY; y < maxY; y++) {
+			for (let x = minX; x < maxX; x++) {
 				const filled = generator.isFilled(x, y);
 				text += this.add(x, y, width, height, filled);
-
-				if (filled) {
-					fillCount++;
-				}
+				if (filled) fillCount++;
 			}
 		}
 
@@ -167,21 +168,38 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		this.stacksOf64.setValue(`${(fillCount / 64).toFixed(1)}`);
 		this.stacksOf16.setValue(`${(fillCount / 16).toFixed(1)}`);
 
-		for (let ix = 0; ix < svgWidth; ix += this.dFull) {
-			const fill = "#bbbbbb";
-			text += `<rect x="${(ix + (this.dWidth / 2))}" y="0" fill="${fill}" width="${this.dBorder}" height="${svgHeight}" opacity=".4" />`;
-		}
+		// vertical grid lines
+		text += this.renderGridLines(width, svgHeight, half, centerX, true);
+		// horizontal grid lines
+		text += this.renderGridLines(height, svgWidth, half, centerY, false);
 
-		for (let iy = 0; iy < svgHeight; iy += this.dFull) {
-			const fill = "#bbbbbb";
-			text += `<rect x="0" y="${(iy + (this.dWidth / 2))}" fill="${fill}" width="${svgWidth}" opacity=".6" height="${this.dBorder}"/>`;
-		}
-
-		// text += '<line id="selection_line" x1="0" y1="0" x2="0" y2="0" style="stroke:rgb(0,255,0);" stroke-width="3" stroke-linecap="round" opacity="0" />';
-		text += '</svg>';
-
+		text += `</svg>`;
 		return text;
 	}
+
+	private renderGridLines(
+		count: number,
+		length: number,
+		offset: number,
+		center: number,
+		vertical: boolean
+	): string {
+		let svg = '';
+		for (let i = 0; i <= count; i++) {
+			const atCenter = i === center;
+			const fill = atCenter ? '#880000' : '#bbbbbb';
+			const opacity = atCenter ? '1' : '.3';
+			if (vertical) {
+				svg += `<rect x="${i * this.dFull + offset}" y="0" fill="${fill}"
+						 width="${this.dBorder}" height="${length}" opacity="${opacity}" />`;
+			} else {
+				svg += `<rect x="0" y="${i * this.dFull + offset}" fill="${fill}"
+						 width="${length}" height="${this.dBorder}" opacity="${opacity}" />`;
+			}
+		}
+		return svg;
+	}
+
 
 	private scale() {
 		if (!this.lastSvg) {
@@ -193,10 +211,16 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 			throw new Error("error getting requisite data attributes");
 		}
 
-		const aspect = parseInt(h, 10) / parseInt(w, 10);
+		const wn = parseInt(w, 10);
+		const hn = parseInt(h, 10);
 
-		const scaleX = this.scaleSize;
-		const scaleY = this.scaleSize * aspect;
+		const aspect = hn / wn;
+
+		var scale = this.scaleSize;
+		scale = scale * (wn * .01);
+
+		const scaleX = scale;
+		const scaleY = scale * aspect;
 
 		this.lastSvg.setAttribute('width', scaleX + 'px');
 		this.lastSvg.setAttribute('height', scaleY + 'px');
