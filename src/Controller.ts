@@ -97,7 +97,7 @@ export class MainController {
 
 	constructor(private controls: HTMLElement, private result: HTMLElement) {
 		const svgState = this.stateMananger.get("svgRenderer", {
-			scale: 544,
+			scale: 500,
 		});
 		const svgRenderer = new SvgRenderer(svgState.get('scale'));
 		this.renderer = svgRenderer;
@@ -108,8 +108,8 @@ export class MainController {
 
 		const circleState = this.stateMananger.get("circle", {
 			mode: CircleModes.thick,
-			width: 5,
-			height: 5,
+			width: 13,
+			height: 13,
 			force: true,
 		});
 
