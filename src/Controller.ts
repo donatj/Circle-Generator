@@ -184,7 +184,7 @@ export class MainController {
 	
 		el.style.cursor = "grab";
 		el.style.userSelect = "none";
-		el.style.touchAction = "none";
+		// el.style.touchAction = "none";
 	
 		el.addEventListener("pointerdown", (e: PointerEvent) => {
 			let target = e.target as HTMLElement|SVGElement|null;
