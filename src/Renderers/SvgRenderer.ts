@@ -105,9 +105,9 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 			extra = 'onclick="this.style.fill=\'#7711AA\'"';
 		} else if (x == midx || y == midy) {
 			if (xor(!!(x & 1), !!(y & 1))) {
-				color = '#EEEEEE';
+				color = '#AAAAAA';
 			} else {
-				color = '#F8F8F8';
+				color = '#CCCCCC';
 			}
 		}
 
