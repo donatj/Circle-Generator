@@ -181,13 +181,13 @@ export class MainController {
 	private makeResultDraggable() {
 		let isDown = false;
 		const el = this.result;
-	
+
 		el.style.cursor = "grab";
 		el.style.userSelect = "none";
 		// el.style.touchAction = "none";
-	
+
 		el.addEventListener("pointerdown", (e: PointerEvent) => {
-			let target = e.target as HTMLElement|SVGElement|null;
+			const target = e.target as HTMLElement|SVGElement|null;
 			if (target && target.classList.contains("filled")) {
 				return;
 			}
@@ -197,12 +197,12 @@ export class MainController {
 			el.setPointerCapture(e.pointerId);
 			el.style.cursor = "grabbing";
 		});
-	
+
 		el.addEventListener("pointermove", (e: PointerEvent) => {
 			if (!isDown) return;
 			el.scrollBy(-e.movementX, -e.movementY);
 		});
-	
+
 		el.addEventListener("pointerup", (e: PointerEvent) => {
 			if (e.pointerType !== "mouse") return;
 			isDown = false;
@@ -210,7 +210,7 @@ export class MainController {
 			el.style.cursor = "grab";
 		});
 	}
-	
+
 
 	private renderControls() {
 		this.controls.innerHTML = '';

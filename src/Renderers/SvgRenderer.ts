@@ -235,7 +235,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 		const aspect = hn / wn;
 
-		var scale = this.scaleSize;
+		let scale = this.scaleSize;
 		scale = scale * (wn * .01);
 
 		const scaleX = scale;
