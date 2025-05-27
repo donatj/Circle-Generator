@@ -16,7 +16,7 @@
     "@rollup/plugin-typescript": "^12.1.2",
     "@types/robust-point-in-polygon": "^1.0.0",
     "rollup": "^4.41.1",
-    "sass": "^1.87.0",
+    "sass": "^1.89.0",
     "tslint": "^6",
     "typescript": "^5.8.3"
   },
