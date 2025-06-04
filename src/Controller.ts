@@ -7,7 +7,7 @@ This notice may not be removed or altered from any source distribution.
 import { GeneratorInterface2D } from "./Generators/GeneratorInterface2D";
 import { SvgRenderer } from "./Renderers/SvgRenderer";
 import { RendererInterface } from "./Renderers/RendererInterface";
-import { Circle, CircleModes, FillCheckModes } from "./Generators/Circle";
+import { Circle, CircleCenterModes, CircleModes, FillCheckModes } from "./Generators/Circle";
 import { StateHandler } from "./State";
 
 export interface Control<T extends HTMLElement = HTMLElement> {
@@ -133,6 +133,7 @@ export class MainController {
 			width: 13,
 			height: 13,
 			force: true,
+            circleCenterMode: CircleCenterModes.infer,
 		});
 
 		const w = circleState.get('width');
@@ -143,6 +144,7 @@ export class MainController {
 			circleState.get('circleMode'),
             circleState.get('fillCheckMode'),
 			circleState.get('force'),
+            circleState.get('circleCenterMode'),
 		);
 		this.generator = circle;
 		this.generator.changeEmitter.add(() => { this.render(); });
@@ -154,6 +156,7 @@ export class MainController {
 			circleState.set('width', e.state.width);
 			circleState.set('height', e.state.height);
 			circleState.set('force', e.state.force);
+            circleState.set('circleCenterMode', e.state.circleCenterMode);
 		});
 
 		if (w * h > 200 * 200) {
