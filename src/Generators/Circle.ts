@@ -12,8 +12,8 @@ export enum CircleModes {
 
 export enum FillCheckModes {
     center = 'center',
-    closest = 'closest',
-    furthest = 'furthest',
+    closestCorner = 'closest corner',
+    furthestCorner = 'furthest corner',
 }
 
 function filled(x: number, y: number, radius: number, ratio: number, mode: FillCheckModes): boolean {
@@ -24,11 +24,11 @@ function filled(x: number, y: number, radius: number, ratio: number, mode: FillC
             checkX = x;
             checkY = y;
             break;
-        case FillCheckModes.closest:
+        case FillCheckModes.closestCorner:
             checkX = (x >= 0) ? x - 0.5 : x + 0.5;
             checkY = (y >= 0) ? y - 0.5 : y + 0.5;
             break;
-        case FillCheckModes.furthest:
+        case FillCheckModes.furthestCorner:
             checkX = (x >= 0) ? x + 0.5 : x - 0.5;
             checkY = (y >= 0) ? y + 0.5 : y - 0.5;
             break;
@@ -36,7 +36,7 @@ function filled(x: number, y: number, radius: number, ratio: number, mode: FillC
             throw new NeverError(mode);
         }
     }
-    return distance(x, y, ratio) <= radius;
+    return distance(checkX, checkY, ratio) <= radius * 0.999999999999;
 }
 
 function fatfilled(x: number, y: number, radius: number, ratio: number, mode: FillCheckModes): boolean {
@@ -153,6 +153,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 			this.widthControl,
 			this.heightControl,
 			{ element: this.circleModeControlElm, label: 'border', group: 'Render' },
+            { element: this.fillCheckModeControlElm, label: 'fill check', group: 'Render' },
 		];
 	}
 

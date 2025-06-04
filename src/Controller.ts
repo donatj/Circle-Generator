@@ -55,13 +55,13 @@ export function makeButtonControl(
 export function makeModeControl<E extends Record<string, string>>(
     modeEnum: E,
     selectedMode: string,
-    onAlter: (() => void),
+    onAlter: () => void,
 ): HTMLSelectElement {
     const modeControlElm = document.createElement('select');
 
     for (const item of Object.keys(modeEnum)) {
         const opt = document.createElement('option');
-        opt.innerText = item;
+        opt.innerText = modeEnum[item];
         modeControlElm.appendChild(opt);
 
         if (item == selectedMode) {
