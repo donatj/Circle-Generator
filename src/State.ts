@@ -45,9 +45,9 @@ export class StateHandler {
 	public get<T extends object>(name: string, defaultValue: T): StateItem<T> {
 		const stored = this.state[name] as Partial<T> || {};
 
-		Object.assign(defaultValue, stored);
+		const value = { ...defaultValue, ...stored };
 
-		const si = new StateItem<T>(defaultValue);
+		const si = new StateItem<T>(value);
 		si.changeEmitter.add(() => {
 			this.state[name] = si.getValue();
 			this.save();

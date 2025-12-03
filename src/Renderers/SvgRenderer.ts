@@ -1,16 +1,19 @@
 import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
 import { RendererInterface } from "./RendererInterface";
-import { Control, ControlAwareInterface, InfoControl, makeButtonControl, makeInputControl } from "../Controller";
+import { Control, ControlAwareInterface, InfoControl, makeButtonControl, makeInputControl } from "../Controls";
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Math";
-import { svgToCanvas } from "../Utils";
-
-function isSvgElement(el: Node): el is SVGElement {
-	return (el as SVGElement).namespaceURI === "http://www.w3.org/2000/svg";
-}
+import { svgToCanvas, triggerDownload } from "../Utils";
+import { StateHandler, StateItem } from "../State";
 
 interface SvgRendererState {
 	scale: number;
+}
+
+interface BuiltSquaresState {
+	built: string[];
+	width: number;
+	height: number;
 }
 
 export class SvgRenderer implements RendererInterface, ControlAwareInterface {
@@ -26,7 +29,15 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	public readonly changeEmitter = new EventEmitter<SvgRendererState>();
 
-	constructor(private scaleSize: number) { }
+	private cachedControls: Control[] | null = null;
+
+	private builtSquaresState: StateItem<BuiltSquaresState>;
+	private builtSquares: Set<string> = new Set();
+
+	constructor(private scaleSize: number, stateHandler: StateHandler) {
+		this.builtSquaresState = stateHandler.get("builtSquares", { built: [], width: 0, height: 0 });
+		this.builtSquares = new Set(this.builtSquaresState.get('built'));
+	}
 
 	private triggerChange() {
 		this.changeEmitter.trigger({
@@ -35,54 +46,65 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	}
 
 	public getControls(): Control[] {
+		if (!this.cachedControls) {
+			const scale = makeInputControl('Render', 'scale', 'range', this.scaleSize, (val) => {
+				this.scaleSize = parseInt(val, 10);
+				this.scale();
 
-		const scale = makeInputControl('Render', 'scale', 'range', this.scaleSize, (val) => {
-			this.scaleSize = parseInt(val, 10);
-			this.scale();
+				this.triggerChange();
+			}, { min: "100", max: "2000" });
 
-			this.triggerChange();
-		}, { min: "100", max: "2000" });
+			this.cachedControls = [
+				scale,
 
-		return [
-			scale,
+				makeButtonControl('Download', null, 'PNG', async () => {
+					if (!this.lastSvg) {
+						throw new Error('No SVG to download');
+					}
 
-			makeButtonControl('Download', null, 'PNG', async () => {
-				if (!this.lastSvg) {
-					throw new Error('No SVG to download');
-				}
+					const canvas = await svgToCanvas(this.lastSvg.outerHTML);
+					const dataUrl = canvas.toDataURL();
+					const filename = (this.lastGenerator?.getDescription() || "circle") + "-download.png";
 
-				const canvas = await svgToCanvas(this.lastSvg.outerHTML);
-				const dataUrl = canvas.toDataURL();
+					triggerDownload(dataUrl, filename);
+				}),
 
-				const a = document.createElement('a');
-				a.href = dataUrl;
-				a.download = (this.lastGenerator?.getDescription() || "circle") + "-download.png";
-				document.body.appendChild(a);
-				a.click();
-			}),
+				makeButtonControl('Download', null, 'SVG', async () => {
+					if (!this.lastSvg) {
+						throw new Error('No SVG to download');
+					}
 
-			makeButtonControl('Download', null, 'SVG', async () => {
-				if (!this.lastSvg) {
-					throw new Error('No SVG to download');
-				}
+					const href = "data:image/svg+xml;base64," + btoa(this.lastSvg.outerHTML);
+					const filename = (this.lastGenerator?.getDescription() || "circle") + "-download.svg";
 
-				const a = document.createElement('a');
-				a.href = "data:image/svg+xml;base64," + btoa(this.lastSvg.outerHTML);
-				a.download = (this.lastGenerator?.getDescription() || "circle") + "-download.svg";
-				document.body.appendChild(a);
-				a.click();
-			}),
+					triggerDownload(href, filename);
+				}),
 
-			this.blocks,
-			this.stacksOf64,
-			this.stacksOf16,
-		];
+				makeButtonControl('Tools', null, 'Clear Built', () => {
+					this.clearBuiltSquares();
+					this.builtSquaresState.set('built', []);
+				}),
+
+				this.blocks,
+				this.stacksOf64,
+				this.stacksOf16,
+			];
+		}
+		return this.cachedControls;
 	}
 
-	private hasInlineSvg(): boolean {
-		const div = document.createElement('div');
-		div.innerHTML = '<svg/>';
-		return Boolean(div.firstChild && isSvgElement(div.firstChild));
+
+	private coordToKey(x: number, y: number): string {
+		return `${x},${y}`;
+	}
+
+	private clearBuiltSquares(): void {
+		this.builtSquares.clear();
+		if (this.lastSvg) {
+			this.lastSvg.querySelectorAll('.built').forEach(el => {
+				el.classList.remove('built');
+			});
+		}
 	}
 
 	private add(x: number, y: number, width: number, height: number, filled: boolean): string {
@@ -94,15 +116,12 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const midx = (width / 2) - .5;
 		const midy = (height / 2) - .5;
 
-		let extra = "";
 		if (filled) {
 			if (x == midx || y == midy) {
 				color = '#880000';
 			} else {
 				color = '#FF0000';
 			}
-
-			extra = `onclick="this.classList.toggle('built');"`;
 		} else if (x == midx || y == midy) {
 			if (xor(!!(x & 1), !!(y & 1))) {
 				color = '#AAAAAA';
@@ -112,8 +131,13 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		}
 
 		if (color) {
-			const fillstr = (filled ? 'filled' : '');
-			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${fillstr}" data-x="${x}" data-y="${y}" ${extra}/>`;
+			const classes = ['filled'];
+			const coordKey = this.coordToKey(x, y);
+			if (filled && this.builtSquares.has(coordKey)) {
+				classes.push('built');
+			}
+			const classStr = filled ? classes.join(' ') : '';
+			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${classStr}" data-x="${x}" data-y="${y}" />`;
 		}
 
 		return '';
@@ -122,16 +146,34 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	private lastSvg: SVGElement | null = null;
 
 	public render(target: HTMLElement, generator: GeneratorInterface2D): void {
-		if (!this.hasInlineSvg()) {
-			throw new Error(`SVG Renderer: No support for inline SVG. Please use a browser that supports SVG.`);
-		}
-
 		const svg = this.generateSVG(generator);
 
 		target.innerHTML = svg;
-		// const svgElm = target.firstChild as SVGElement;
 
 		this.lastSvg = target.querySelector('svg');
+
+		if (this.lastSvg) {
+			this.lastSvg.addEventListener('click', (e: MouseEvent) => {
+				const target = e.target as HTMLElement;
+				if (target.classList.contains('filled')) {
+					const x = target.getAttribute('data-x');
+					const y = target.getAttribute('data-y');
+
+					if (x !== null && y !== null) {
+						const coordKey = this.coordToKey(parseInt(x, 10), parseInt(y, 10));
+
+						if (this.builtSquares.has(coordKey)) {
+							this.builtSquares.delete(coordKey);
+						} else {
+							this.builtSquares.add(coordKey);
+						}
+
+						this.builtSquaresState.set('built', Array.from(this.builtSquares));
+						target.classList.toggle('built');
+					}
+				}
+			});
+		}
 
 		this.scale();
 	}
@@ -143,13 +185,26 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const { minX, maxX, minY, maxY } = generator.getBounds();
 		const width = maxX - minX;
 		const height = maxY - minY;
+
+		// Clear built squares if dimensions changed
+		const storedWidth = this.builtSquaresState.get('width');
+		const storedHeight = this.builtSquaresState.get('height');
+		if (storedWidth !== width || storedHeight !== height) {
+			this.clearBuiltSquares();
+			this.builtSquaresState.set('width', width);
+			this.builtSquaresState.set('height', height);
+			this.builtSquaresState.set('built', []);
+		}
+
 		const svgWidth = this.dFull * (width + 1);
 		const svgHeight = this.dFull * (height + 1);
 		const half = this.dWidth / 2;
 		const centerX = width / 2;
 		const centerY = height / 2;
 
-		let text = `<svg id="svg_circle"
+		const parts: string[] = [];
+
+		parts.push(`<svg id="svg_circle"
 			xmlns="http://www.w3.org/2000/svg"
 			data-w="${svgWidth}" data-h="${svgHeight}"
 			width="${svgWidth}px" height="${svgHeight}px"
@@ -172,13 +227,16 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 					fill: inherit;
 				}
 			</style>
-		`;
+		`);
 
 		let fillCount = 0;
 		for (let y = minY; y < maxY; y++) {
 			for (let x = minX; x < maxX; x++) {
 				const filled = generator.isFilled(x, y);
-				text += this.add(x, y, width, height, filled);
+				const rect = this.add(x, y, width, height, filled);
+				if (rect) {
+					parts.push(rect);
+				}
 				if (filled) fillCount++;
 			}
 		}
@@ -188,12 +246,12 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		this.stacksOf16.setValue(`${(fillCount / 16).toFixed(1)}`);
 
 		// vertical grid lines
-		text += this.renderGridLines(width, svgHeight, half, centerX, true);
+		parts.push(this.renderGridLines(width, svgHeight, half, centerX, true));
 		// horizontal grid lines
-		text += this.renderGridLines(height, svgWidth, half, centerY, false);
+		parts.push(this.renderGridLines(height, svgWidth, half, centerY, false));
 
-		text += `</svg>`;
-		return text;
+		parts.push(`</svg>`);
+		return parts.join('');
 	}
 
 	private renderGridLines(
@@ -203,20 +261,20 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		center: number,
 		vertical: boolean
 	): string {
-		let svg = '';
+		const lines: string[] = [];
 		for (let i = 0; i <= count; i++) {
 			const atCenter = i === center;
 			const fill = atCenter ? '#880000' : '#bbbbbb';
 			const opacity = atCenter ? '1' : '.3';
 			if (vertical) {
-				svg += `<rect x="${i * this.dFull + offset}" y="0" fill="${fill}"
-						 width="${this.dBorder}" height="${length}" opacity="${opacity}" />`;
+				lines.push(`<rect x="${i * this.dFull + offset}" y="0" fill="${fill}"
+						 width="${this.dBorder}" height="${length}" opacity="${opacity}" />`);
 			} else {
-				svg += `<rect x="0" y="${i * this.dFull + offset}" fill="${fill}"
-						 width="${length}" height="${this.dBorder}" opacity="${opacity}" />`;
+				lines.push(`<rect x="0" y="${i * this.dFull + offset}" fill="${fill}"
+						 width="${length}" height="${this.dBorder}" opacity="${opacity}" />`);
 			}
 		}
-		return svg;
+		return lines.join('');
 	}
 
 
