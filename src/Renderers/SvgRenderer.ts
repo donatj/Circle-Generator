@@ -4,39 +4,60 @@ import { Control, ControlAwareInterface, InfoControl, makeButtonControl, makeInp
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Math";
 import { svgToCanvas, triggerDownload } from "../Utils";
-import { StateHandler, StateItem } from "../State";
+import { StateHandler } from "../State";
+import { SvgInteractionHandler } from "./SvgInteractionHandler";
 
 interface SvgRendererState {
 	scale: number;
 }
 
-interface BuiltSquaresState {
-	built: string[];
-	width: number;
-	height: number;
-}
-
 export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
+	// CSS class names
+	private static readonly CLASS_FILLED = 'filled';
+	private static readonly CLASS_BUILT = 'built';
+
+	// Data attributes
+	private static readonly ATTR_X = 'data-x';
+	private static readonly ATTR_Y = 'data-y';
+	private static readonly ATTR_W = 'data-w';
+	private static readonly ATTR_H = 'data-h';
+
+	// Colors
+	private static readonly COLOR_AXIS_FILLED = '#880000';
+	private static readonly COLOR_FILLED = '#FF0000';
+	private static readonly COLOR_AXIS_LIGHT = '#CCCCCC';
+	private static readonly COLOR_AXIS_DARK = '#AAAAAA';
+	private static readonly COLOR_GRID = '#bbbbbb';
+	private static readonly COLOR_BUILT = '#7711AA';
+
+	// SVG
+	private static readonly SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
+	private static readonly SVG_ID = 'svg_circle';
+
+	// Control groups
+	private static readonly GROUP_RENDER = 'Render';
+	private static readonly GROUP_DOWNLOAD = 'Download';
+	private static readonly GROUP_DETAILS = 'Details';
+
+	// Dimensions
 	private dWidth = 5;
 	private dBorder = 1;
 	private dFull = this.dWidth + this.dBorder;
 
-	private blocks = new InfoControl("Details", "blocks");
-
-	private stacksOf64 = new InfoControl("Details", "stacks of 64");
-	private stacksOf16 = new InfoControl("Details", "stacks of 16");
+	// Info controls
+	private blocks = new InfoControl(SvgRenderer.GROUP_DETAILS, "blocks");
+	private stacksOf64 = new InfoControl(SvgRenderer.GROUP_DETAILS, "stacks of 64");
+	private stacksOf16 = new InfoControl(SvgRenderer.GROUP_DETAILS, "stacks of 16");
 
 	public readonly changeEmitter = new EventEmitter<SvgRendererState>();
 
 	private cachedControls: Control[] | null = null;
 
-	private builtSquaresState: StateItem<BuiltSquaresState>;
-	private builtSquares: Set<string> = new Set();
+	private interactionHandler: SvgInteractionHandler;
 
 	constructor(private scaleSize: number, stateHandler: StateHandler) {
-		this.builtSquaresState = stateHandler.get("builtSquares", { built: [], width: 0, height: 0 });
-		this.builtSquares = new Set(this.builtSquaresState.get('built'));
+		this.interactionHandler = new SvgInteractionHandler(stateHandler);
 	}
 
 	private triggerChange() {
@@ -47,17 +68,17 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	public getControls(): Control[] {
 		if (!this.cachedControls) {
-			const scale = makeInputControl('Render', 'scale', 'range', this.scaleSize, (val) => {
+			const scale = makeInputControl(SvgRenderer.GROUP_RENDER, 'scale', 'range', this.scaleSize, (val) => {
 				this.scaleSize = parseInt(val, 10);
 				this.scale();
 
 				this.triggerChange();
 			}, { min: "100", max: "2000" });
 
-			this.cachedControls = [
+			const rendererControls: Control[] = [
 				scale,
 
-				makeButtonControl('Download', null, 'PNG', async () => {
+				makeButtonControl(SvgRenderer.GROUP_DOWNLOAD, null, 'PNG', async () => {
 					if (!this.lastSvg) {
 						throw new Error('No SVG to download');
 					}
@@ -69,7 +90,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 					triggerDownload(dataUrl, filename);
 				}),
 
-				makeButtonControl('Download', null, 'SVG', async () => {
+				makeButtonControl(SvgRenderer.GROUP_DOWNLOAD, null, 'SVG', async () => {
 					if (!this.lastSvg) {
 						throw new Error('No SVG to download');
 					}
@@ -79,33 +100,20 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 					triggerDownload(href, filename);
 				}),
+			];
 
-				makeButtonControl('Tools', null, 'Clear Built', () => {
-					this.clearBuiltSquares();
-					this.builtSquaresState.set('built', []);
-				}),
-
+			const interactionControls = this.interactionHandler.getControls();
+			const infoControls: Control[] = [
 				this.blocks,
 				this.stacksOf64,
 				this.stacksOf16,
 			];
+
+			this.cachedControls = rendererControls.concat(interactionControls, infoControls);
 		}
 		return this.cachedControls;
 	}
 
-
-	private coordToKey(x: number, y: number): string {
-		return `${x},${y}`;
-	}
-
-	private clearBuiltSquares(): void {
-		this.builtSquares.clear();
-		if (this.lastSvg) {
-			this.lastSvg.querySelectorAll('.built').forEach(el => {
-				el.classList.remove('built');
-			});
-		}
-	}
 
 	private add(x: number, y: number, width: number, height: number, filled: boolean): string {
 		const xp = (((x + 1) * this.dFull) /*+ (this._svg_width / 2)*/ - (this.dFull / 2)) + .5;
@@ -118,26 +126,25 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 		if (filled) {
 			if (x == midx || y == midy) {
-				color = '#880000';
+				color = SvgRenderer.COLOR_AXIS_FILLED;
 			} else {
-				color = '#FF0000';
+				color = SvgRenderer.COLOR_FILLED;
 			}
 		} else if (x == midx || y == midy) {
 			if (xor(!!(x & 1), !!(y & 1))) {
-				color = '#AAAAAA';
+				color = SvgRenderer.COLOR_AXIS_DARK;
 			} else {
-				color = '#CCCCCC';
+				color = SvgRenderer.COLOR_AXIS_LIGHT;
 			}
 		}
 
 		if (color) {
-			const classes = ['filled'];
-			const coordKey = this.coordToKey(x, y);
-			if (filled && this.builtSquares.has(coordKey)) {
-				classes.push('built');
+			const classes = [SvgRenderer.CLASS_FILLED];
+			if (filled && this.interactionHandler.isSquareBuilt(x, y)) {
+				classes.push(SvgRenderer.CLASS_BUILT);
 			}
 			const classStr = filled ? classes.join(' ') : '';
-			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${classStr}" data-x="${x}" data-y="${y}" />`;
+			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${classStr}" ${SvgRenderer.ATTR_X}="${x}" ${SvgRenderer.ATTR_Y}="${y}" />`;
 		}
 
 		return '';
@@ -153,26 +160,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		this.lastSvg = target.querySelector('svg');
 
 		if (this.lastSvg) {
-			this.lastSvg.addEventListener('click', (e: MouseEvent) => {
-				const target = e.target as HTMLElement;
-				if (target.classList.contains('filled')) {
-					const x = target.getAttribute('data-x');
-					const y = target.getAttribute('data-y');
-
-					if (x !== null && y !== null) {
-						const coordKey = this.coordToKey(parseInt(x, 10), parseInt(y, 10));
-
-						if (this.builtSquares.has(coordKey)) {
-							this.builtSquares.delete(coordKey);
-						} else {
-							this.builtSquares.add(coordKey);
-						}
-
-						this.builtSquaresState.set('built', Array.from(this.builtSquares));
-						target.classList.toggle('built');
-					}
-				}
-			});
+			this.interactionHandler.attachToSvg(this.lastSvg);
 		}
 
 		this.scale();
@@ -187,14 +175,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const height = maxY - minY;
 
 		// Clear built squares if dimensions changed
-		const storedWidth = this.builtSquaresState.get('width');
-		const storedHeight = this.builtSquaresState.get('height');
-		if (storedWidth !== width || storedHeight !== height) {
-			this.clearBuiltSquares();
-			this.builtSquaresState.set('width', width);
-			this.builtSquaresState.set('height', height);
-			this.builtSquaresState.set('built', []);
-		}
+		this.interactionHandler.clearBuiltSquaresIfDimensionsChanged(width, height);
 
 		const svgWidth = this.dFull * (width + 1);
 		const svgHeight = this.dFull * (height + 1);
@@ -204,26 +185,26 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 		const parts: string[] = [];
 
-		parts.push(`<svg id="svg_circle"
-			xmlns="http://www.w3.org/2000/svg"
-			data-w="${svgWidth}" data-h="${svgHeight}"
+		parts.push(`<svg id="${SvgRenderer.SVG_ID}"
+			xmlns="${SvgRenderer.SVG_NAMESPACE}"
+			${SvgRenderer.ATTR_W}="${svgWidth}" ${SvgRenderer.ATTR_H}="${svgHeight}"
 			width="${svgWidth}px" height="${svgHeight}px"
 			viewBox="0 0 ${svgWidth} ${svgHeight}">
 			<style>
-				.filled {
+				.${SvgRenderer.CLASS_FILLED} {
 					cursor: pointer;
 					transition: fill 0.3s;
 				}
 
-				.filled:hover {
-					fill: #7711AA;
+				.${SvgRenderer.CLASS_FILLED}:hover {
+					fill: ${SvgRenderer.COLOR_BUILT};
 				}
 
-				.filled.built {
-					fill: #7711AA;
+				.${SvgRenderer.CLASS_FILLED}.${SvgRenderer.CLASS_BUILT} {
+					fill: ${SvgRenderer.COLOR_BUILT};
 				}
 
-				.filled.built:hover {
+				.${SvgRenderer.CLASS_FILLED}.${SvgRenderer.CLASS_BUILT}:hover {
 					fill: inherit;
 				}
 			</style>
@@ -264,7 +245,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const lines: string[] = [];
 		for (let i = 0; i <= count; i++) {
 			const atCenter = i === center;
-			const fill = atCenter ? '#880000' : '#bbbbbb';
+			const fill = atCenter ? SvgRenderer.COLOR_AXIS_FILLED : SvgRenderer.COLOR_GRID;
 			const opacity = atCenter ? '1' : '.3';
 			if (vertical) {
 				lines.push(`<rect x="${i * this.dFull + offset}" y="0" fill="${fill}"
@@ -280,10 +261,10 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	private scale() {
 		if (!this.lastSvg) {
-			throw new Error("Error finding svg_circle");
+			throw new Error(`Error finding ${SvgRenderer.SVG_ID}`);
 		}
-		const h = this.lastSvg.getAttribute('data-h');
-		const w = this.lastSvg.getAttribute('data-w');
+		const h = this.lastSvg.getAttribute(SvgRenderer.ATTR_H);
+		const w = this.lastSvg.getAttribute(SvgRenderer.ATTR_W);
 		if (!h || !w) {
 			throw new Error("error getting requisite data attributes");
 		}
