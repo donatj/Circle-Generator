@@ -1,6 +1,6 @@
 import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
 import { RendererInterface } from "./RendererInterface";
-import { Control, ControlAwareInterface, InfoControl, makeButtonControl, makeInputControl } from "../Controls";
+import { Control, ControlAwareInterface, ControlGroup, InfoControl, makeButtonControl, makeInputControl } from "../Controls";
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Math";
 import { svgToCanvas, triggerDownload } from "../Utils";
@@ -9,6 +9,19 @@ import { SvgInteractionHandler } from "./SvgInteractionHandler";
 
 interface SvgRendererState {
 	scale: number;
+	colorScheme: string;
+}
+
+interface ColorScheme {
+	name: string;
+	colors: {
+		axisFilled: string;
+		filled: string;
+		axisLight: string;
+		axisDark: string;
+		grid: string;
+		built: string;
+	};
 }
 
 export class SvgRenderer implements RendererInterface, ControlAwareInterface {
@@ -17,28 +30,84 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	private static readonly CLASS_FILLED = 'filled';
 	private static readonly CLASS_BUILT = 'built';
 
+	private static readonly COLOR_SCHEMES: { [key: string]: ColorScheme } = {
+		classic: {
+			name: 'Classic',
+			colors: {
+				axisFilled: '#880000',
+				filled: '#FF0000',
+				axisLight: '#CCCCCC',
+				axisDark: '#AAAAAA',
+				grid: '#bbbbbb',
+				built: '#7711AA',
+			}
+		},
+		ocean: {
+			name: 'Ocean',
+			colors: {
+				axisFilled: '#003366',
+				filled: '#0066CC',
+				axisLight: '#CCE5FF',
+				axisDark: '#99CCFF',
+				grid: '#B3D9FF',
+				built: '#00CC99',
+			}
+		},
+		forest: {
+			name: 'Forest',
+			colors: {
+				axisFilled: '#1B4D1B',
+				filled: '#2E7D32',
+				axisLight: '#C8E6C9',
+				axisDark: '#A5D6A7',
+				grid: '#B9D8B9',
+				built: '#FFA726',
+			}
+		},
+		sunset: {
+			name: 'Sunset',
+			colors: {
+				axisFilled: '#B71C1C',
+				filled: '#FF5722',
+				axisLight: '#FFE0B2',
+				axisDark: '#FFCC80',
+				grid: '#FFD699',
+				built: '#9C27B0',
+			}
+		},
+		monochrome: {
+			name: 'Monochrome',
+			colors: {
+				axisFilled: '#000000',
+				filled: '#404040',
+				axisLight: '#F0F0F0',
+				axisDark: '#D0D0D0',
+				grid: '#C0C0C0',
+				built: '#808080',
+			}
+		},
+		sunny: {
+			name: 'Sunny Day',
+			colors: {
+				axisFilled: '#0072B2',
+				filled: '#56B4E9',
+				axisLight: '#F0E442',
+				axisDark: '#E69F00',
+				grid: '#D0D0D0',
+				built: '#D55E00',
+			}
+		},
+	};
+
 	// Data attributes
 	private static readonly ATTR_X = 'data-x';
 	private static readonly ATTR_Y = 'data-y';
 	private static readonly ATTR_W = 'data-w';
 	private static readonly ATTR_H = 'data-h';
 
-	// Colors
-	private static readonly COLOR_AXIS_FILLED = '#880000';
-	private static readonly COLOR_FILLED = '#FF0000';
-	private static readonly COLOR_AXIS_LIGHT = '#CCCCCC';
-	private static readonly COLOR_AXIS_DARK = '#AAAAAA';
-	private static readonly COLOR_GRID = '#bbbbbb';
-	private static readonly COLOR_BUILT = '#7711AA';
-
 	// SVG
 	private static readonly SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
 	private static readonly SVG_ID = 'svg_circle';
-
-	// Control groups
-	private static readonly GROUP_RENDER = 'Render';
-	private static readonly GROUP_DOWNLOAD = 'Download';
-	private static readonly GROUP_DETAILS = 'Details';
 
 	// Dimensions
 	private dWidth = 5;
@@ -46,9 +115,9 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	private dFull = this.dWidth + this.dBorder;
 
 	// Info controls
-	private blocks = new InfoControl(SvgRenderer.GROUP_DETAILS, "blocks");
-	private stacksOf64 = new InfoControl(SvgRenderer.GROUP_DETAILS, "stacks of 64");
-	private stacksOf16 = new InfoControl(SvgRenderer.GROUP_DETAILS, "stacks of 16");
+	private blocks = new InfoControl(ControlGroup.Details, "blocks");
+	private stacksOf64 = new InfoControl(ControlGroup.Details, "stacks of 64");
+	private stacksOf16 = new InfoControl(ControlGroup.Details, "stacks of 16");
 
 	public readonly changeEmitter = new EventEmitter<SvgRendererState>();
 
@@ -56,19 +125,63 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	private interactionHandler: SvgInteractionHandler;
 
+	private colorScheme: string;
+	private svgRendererState: StateHandler;
+
 	constructor(private scaleSize: number, stateHandler: StateHandler) {
+		this.svgRendererState = stateHandler;
 		this.interactionHandler = new SvgInteractionHandler(stateHandler);
+
+		const state = stateHandler.get<SvgRendererState>('svgRenderer', {
+			scale: scaleSize,
+			colorScheme: 'classic'
+		});
+		this.colorScheme = state.get('colorScheme');
+	}
+
+	private getColors() {
+		const scheme = SvgRenderer.COLOR_SCHEMES[this.colorScheme] || SvgRenderer.COLOR_SCHEMES['classic'];
+		return scheme.colors;
 	}
 
 	private triggerChange() {
 		this.changeEmitter.trigger({
 			scale: this.scaleSize,
+			colorScheme: this.colorScheme,
 		});
+	}
+
+	private createColorSchemeSelect(): HTMLSelectElement {
+		const select = document.createElement('select');
+
+		for (const key in SvgRenderer.COLOR_SCHEMES) {
+			const scheme = SvgRenderer.COLOR_SCHEMES[key];
+			const opt = document.createElement('option');
+			opt.value = key;
+			opt.innerText = scheme.name;
+			select.appendChild(opt);
+
+			if (key === this.colorScheme) {
+				opt.selected = true;
+			}
+		}
+
+		select.addEventListener('change', () => {
+			this.colorScheme = select.value;
+			const state = this.svgRendererState.get<SvgRendererState>('svgRenderer', {
+				scale: this.scaleSize,
+				colorScheme: 'classic'
+			});
+			state.set('colorScheme', this.colorScheme);
+			this.triggerChange();
+		});
+
+		return select;
 	}
 
 	public getControls(): Control[] {
 		if (!this.cachedControls) {
-			const scale = makeInputControl(SvgRenderer.GROUP_RENDER, 'scale', 'range', this.scaleSize, (val) => {
+			const scale = makeInputControl(ControlGroup.Render, 'scale', 'range', this.scaleSize, (val) => {
 				this.scaleSize = parseInt(val, 10);
 				this.scale();
 
@@ -78,7 +191,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 			const rendererControls: Control[] = [
 				scale,
 
-				makeButtonControl(SvgRenderer.GROUP_DOWNLOAD, null, 'PNG', async () => {
+				makeButtonControl(ControlGroup.Download, null, 'PNG', async () => {
 					if (!this.lastSvg) {
 						throw new Error('No SVG to download');
 					}
@@ -90,7 +203,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 					triggerDownload(dataUrl, filename);
 				}),
 
-				makeButtonControl(SvgRenderer.GROUP_DOWNLOAD, null, 'SVG', async () => {
+				makeButtonControl(ControlGroup.Download, null, 'SVG', async () => {
 					if (!this.lastSvg) {
 						throw new Error('No SVG to download');
 					}
@@ -102,6 +215,10 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 				}),
 			];
 
+			const colorSchemeControl: Control[] = [
+				{ element: this.createColorSchemeSelect(), label: 'Color Scheme', group: ControlGroup.Render },
+			];
+
 			const interactionControls = this.interactionHandler.getControls();
 			const infoControls: Control[] = [
 				this.blocks,
@@ -109,7 +226,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 				this.stacksOf16,
 			];
 
-			this.cachedControls = rendererControls.concat(interactionControls, infoControls);
+			this.cachedControls = rendererControls.concat(colorSchemeControl, interactionControls, infoControls);
 		}
 		return this.cachedControls;
 	}
@@ -124,17 +241,19 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const midx = (width / 2) - .5;
 		const midy = (height / 2) - .5;
 
+		const colors = this.getColors();
+
 		if (filled) {
 			if (x == midx || y == midy) {
-				color = SvgRenderer.COLOR_AXIS_FILLED;
+				color = colors.axisFilled;
 			} else {
-				color = SvgRenderer.COLOR_FILLED;
+				color = colors.filled;
 			}
 		} else if (x == midx || y == midy) {
 			if (xor(!!(x & 1), !!(y & 1))) {
-				color = SvgRenderer.COLOR_AXIS_DARK;
+				color = colors.axisDark;
 			} else {
-				color = SvgRenderer.COLOR_AXIS_LIGHT;
+				color = colors.axisLight;
 			}
 		}
 
@@ -184,6 +303,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const centerY = height / 2;
 
 		const parts: string[] = [];
+		const colors = this.getColors();
 
 		parts.push(`<svg id="${SvgRenderer.SVG_ID}"
 			xmlns="${SvgRenderer.SVG_NAMESPACE}"
@@ -197,11 +317,11 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 				}
 
 				.${SvgRenderer.CLASS_FILLED}:hover {
-					fill: ${SvgRenderer.COLOR_BUILT};
+					fill: ${colors.built};
 				}
 
 				.${SvgRenderer.CLASS_FILLED}.${SvgRenderer.CLASS_BUILT} {
-					fill: ${SvgRenderer.COLOR_BUILT};
+					fill: ${colors.built};
 				}
 
 				.${SvgRenderer.CLASS_FILLED}.${SvgRenderer.CLASS_BUILT}:hover {
@@ -243,9 +363,10 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		vertical: boolean
 	): string {
 		const lines: string[] = [];
+		const colors = this.getColors();
 		for (let i = 0; i <= count; i++) {
 			const atCenter = i === center;
-			const fill = atCenter ? SvgRenderer.COLOR_AXIS_FILLED : SvgRenderer.COLOR_GRID;
+			const fill = atCenter ? colors.axisFilled : colors.grid;
 			const opacity = atCenter ? '1' : '.3';
 			if (vertical) {
 				lines.push(`<rect x="${i * this.dFull + offset}" y="0" fill="${fill}"

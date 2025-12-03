@@ -1,5 +1,5 @@
 import { GeneratorInterface2D, Bounds } from "./GeneratorInterface2D";
-import { ControlAwareInterface, makeInputControl, Control } from "../Controls";
+import { ControlAwareInterface, ControlGroup, makeInputControl, Control } from "../Controls";
 import { distance } from "../Math";
 import { EventEmitter } from "../EventEmitter";
 import { NeverError } from "../Errors";
@@ -59,7 +59,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 		private force : boolean,
 	) {
 
-		this.widthControl = makeInputControl('Shape', 'width', "number", this.width, () => {
+		this.widthControl = makeInputControl(ControlGroup.Shape, 'width', "number", this.width, () => {
 			if (this.force) {
 				this.heightControl.element.value = this.widthControl.element.value;
 				this.height = parseInt(this.widthControl.element.value, 10);
@@ -69,7 +69,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 			this.triggerChange('width');
 		});
 
-		this.heightControl = makeInputControl('Shape', 'height', "number", this.height, () => {
+		this.heightControl = makeInputControl(ControlGroup.Shape, 'height', "number", this.height, () => {
 			if (this.force) {
 				this.widthControl.element.value = this.heightControl.element.value;
 				this.width = parseInt(this.heightControl.element.value, 10);
@@ -79,7 +79,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 			this.triggerChange('height');
 		});
 
-		this.forceCircleControl = makeInputControl('Shape', 'Force Circle', "checkbox", "1", () => {
+		this.forceCircleControl = makeInputControl(ControlGroup.Shape, 'Force Circle', "checkbox", "1", () => {
 			// this.heightControl.element.value = this.widthControl.element.value;
 			this.force = this.forceCircleControl.element.checked;
 
@@ -132,7 +132,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 				this.forceCircleControl,
 				this.widthControl,
 				this.heightControl,
-				{ element: this.createModeSelectElement(), label: 'border', group: 'Render' },
+				{ element: this.createModeSelectElement(), label: 'border', group: ControlGroup.Render },
 			];
 		}
 		return this.cachedControls;

@@ -1,4 +1,4 @@
-import { Control, ControlAwareInterface, makeButtonControl } from "../Controls";
+import { Control, ControlAwareInterface, ControlGroup, makeButtonControl } from "../Controls";
 import { StateHandler, StateItem } from "../State";
 
 interface BuiltSquaresState {
@@ -17,9 +17,6 @@ export class SvgInteractionHandler implements ControlAwareInterface {
 	private static readonly ATTR_X = 'data-x';
 	private static readonly ATTR_Y = 'data-y';
 
-	// Control groups
-	private static readonly GROUP_TOOLS = 'Tools';
-
 	private builtSquaresState: StateItem<BuiltSquaresState>;
 	private builtSquares: Set<string> = new Set();
 
@@ -37,7 +34,7 @@ export class SvgInteractionHandler implements ControlAwareInterface {
 	public getControls(): Control[] {
 		if (!this.cachedControls) {
 			this.cachedControls = [
-				makeButtonControl(SvgInteractionHandler.GROUP_TOOLS, null, 'Clear Built', () => {
+				makeButtonControl(ControlGroup.Tools, null, 'Clear Built', () => {
 					this.clearBuiltSquares();
 					this.builtSquaresState.set('built', []);
 				}),

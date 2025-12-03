@@ -4,6 +4,14 @@ Copyright (c) Jesse G. Donat and contributors. Licensed under the MIT License.
 This notice may not be removed or altered from any source distribution.
 */
 
+export enum ControlGroup {
+	Shape = 'Shape',
+	Render = 'Render',
+	Download = 'Download',
+	Tools = 'Tools',
+	Details = 'Details',
+}
+
 export interface Control<T extends HTMLElement = HTMLElement> {
 	element: T;
 	label: string | null;
