@@ -1,0 +1,75 @@
+* {
+	box-sizing: border-box;
+}
+
+body {
+	font-size: 13px;
+	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+
+	margin: 0;
+
+	display: grid;
+	grid-template-areas: "controls" "result";
+	grid-template-rows: min-content auto;
+
+	// width: 100vw;
+	height: 100vh;
+
+	> #controls {
+		grid-area: controls;
+	}
+	> #result {
+		grid-area: result;
+		overflow: auto;
+		padding: .5em;
+	}
+
+}
+
+#controls {
+	display: flex;
+	flex-wrap: wrap;
+
+	> fieldset {
+		border: 1px solid #aaa;
+		border-radius: 3px;
+
+		display: flex;
+		flex-direction: column;
+		
+		align-self: stretch;
+
+		input[type="number"], input[type="checkbox"], select {
+			box-shadow: inset 0 0 0 2px rgb(204 204 204 / 50%);
+			outline: none;
+			border: 1px solid #ccc;
+			border-radius: 3px;
+			font-size: 1.2em;
+			padding: 3px;
+		}
+	
+		input[type="checkbox"] {
+			width: 20px;
+			height: 20px;
+			float: right;
+		}
+	
+		label {
+			> input[type="number"], input[type="range"], > select {
+				display: block;
+			}
+		}
+
+		button {
+			margin: 1px 0;
+			width: 100%;
+		}
+
+		output {
+			float: right;
+			margin-left: 10px;
+			font-style: italic;
+		}
+
+	}
+}

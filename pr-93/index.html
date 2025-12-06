@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<meta name="robots" content="noindex, nofollow, noarchive, nosnippet" />
+	<meta http-equiv="X-Robots-Tag" content="noindex, nofollow" />
+	<title>Pixel Circle Generator</title>
+	<link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+	<div id="controls"></div>
+	<div id="result"></pre>
+	<script type="module">
+		import { MainController } from './lib/generator.js';
+		new MainController(
+			document.getElementById("controls"),
+			document.getElementById("result"),
+		);
+	</script>
+</body>
+
+</html>

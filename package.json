@@ -1,0 +1,26 @@
+{
+  "name": "pixel-circle",
+  "version": "1.0.0",
+  "description": "Generates Pixel Circles",
+  "main": "lib/generator.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Jesse G. Donat",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^12.3.0",
+    "@types/robust-point-in-polygon": "^1.0.0",
+    "rollup": "^4.52.5",
+    "sass": "^1.93.3",
+    "tslint": "^6",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "robust-point-in-polygon": "^1.0.3"
+  }
+}
