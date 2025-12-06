@@ -17,6 +17,9 @@ clean:
 	rm -rf dist
 	rm -rf lib style.css
 
+.PHONY: fix
+fix: lint-fix
+
 .PHONY: lint
 lint:
 	npx tslint -c tslint.json 'src/**/*.ts'

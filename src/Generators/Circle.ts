@@ -175,7 +175,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 	}
 
 	public getDescription(): string {
-		return `Circle-${this.width}x${this.height}`;
+		return `Circle-${this.width}x${this.height}-${this.mode}`;
 	}
 
 }

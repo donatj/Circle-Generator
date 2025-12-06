@@ -6,10 +6,10 @@ This notice may not be removed or altered from any source distribution.
 
 import { GeneratorInterface2D } from "./Generators/GeneratorInterface2D";
 import { SvgRenderer } from "./Renderers/Svg/SvgRenderer";
-import { RendererInterface } from "./Renderers/RendererInterface";
+import { RendererInterface, RenderOutput } from "./Renderers/RendererInterface";
 import { Circle, CircleModes } from "./Generators/Circle";
 import { StateHandler } from "./State";
-import { isControlAwareInterface, Control } from "./Controls";
+import { isControlAwareInterface, Control, ControlAwareInterface } from "./Controls";
 
 export class MainController {
 
@@ -18,6 +18,7 @@ export class MainController {
 	private generator: GeneratorInterface2D;
 
 	private renderer: RendererInterface;
+	private currentRenderOutput: RenderOutput | null = null;
 
 	constructor(private controls: HTMLElement, private result: HTMLElement) {
 		const svgState = this.stateMananger.get("svgRenderer", {
@@ -47,7 +48,10 @@ export class MainController {
 		);
 		this.generator = circle;
 		this.generator.changeEmitter.add(() => { this.render(); });
-		this.renderer.changeEmitter.add(() => { this.render(); });
+		this.renderer.changeEmitter.add(() => {
+			this.render();
+			this.renderControls();
+		});
 
 		circle.changeEmitter.add((e) => {
 			circleState.set('mode', e.state.mode);
@@ -75,8 +79,8 @@ export class MainController {
 			return;
 		}
 
-		this.renderControls();
 		this.render();
+		this.renderControls();
 
 		this.makeResultDraggable();
 	}
@@ -156,19 +160,26 @@ export class MainController {
 	private renderControls() {
 		this.controls.innerHTML = '';
 
-		const controlProviders = [this.generator, this.renderer];
+		const controlProviders: ControlAwareInterface[] = [];
+		if (isControlAwareInterface(this.generator)) {
+			controlProviders.push(this.generator);
+		}
+		if (isControlAwareInterface(this.renderer)) {
+			controlProviders.push(this.renderer);
+		}
+		if (this.currentRenderOutput && isControlAwareInterface(this.currentRenderOutput)) {
+			controlProviders.push(this.currentRenderOutput);
+		}
 
 		const controlGroups: { [key: string]: Control[] } = {};
 
 		for (const controlProvider of controlProviders) {
-			if (isControlAwareInterface(controlProvider)) {
-				for (const c of controlProvider.getControls()) {
-					if (!controlGroups[c.group]) {
-						controlGroups[c.group] = [];
-					}
-
-					controlGroups[c.group].push(c);
+			for (const c of controlProvider.getControls()) {
+				if (!controlGroups[c.group]) {
+					controlGroups[c.group] = [];
 				}
+
+				controlGroups[c.group].push(c);
 			}
 		}
 
@@ -199,7 +210,7 @@ export class MainController {
 	}
 
 	private render() {
-		this.renderer.render(this.result, this.generator);
+		this.currentRenderOutput = this.renderer.render(this.result, this.generator);
 	}
 
 }

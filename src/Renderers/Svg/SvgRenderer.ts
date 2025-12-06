@@ -1,100 +1,19 @@
 import { GeneratorInterface2D } from "../../Generators/GeneratorInterface2D";
-import { RendererInterface } from "../RendererInterface";
-import { Control, ControlAwareInterface, ControlGroup, InfoControl, makeButtonControl, makeInputControl } from "../../Controls";
+import { RendererInterface, RenderOutput } from "../RendererInterface";
+import { Control, ControlAwareInterface, ControlGroup, InfoControl, makeButtonControl } from "../../Controls";
 import { EventEmitter } from "../../EventEmitter";
 import { xor } from "../../Math";
 import { svgToCanvas, triggerDownload } from "../../Utils";
 import { StateHandler } from "../../State";
-import { SvgInteractionHandler } from "./SvgInteractionHandler";
-import { CLASS_BUILT, CLASS_FILLED, ATTR_X, ATTR_Y, ATTR_W, ATTR_H, SVG_NAMESPACE, SVG_ID } from "./SvgConstants";
+import { SvgHandler } from "./SvgHandler";
+import { CLASS_BUILT, CLASS_FILLED, ATTR_X, ATTR_Y, ATTR_W, ATTR_H, SVG_NAMESPACE, SVG_ID, COLOR_SCHEMES, assertStringIsKeyOfColorSchemes, ColorScheme } from "./SvgConstants";
 
 interface SvgRendererState {
 	scale: number;
-	colorScheme: string;
-}
-
-interface ColorScheme {
-	name: string;
-	colors: {
-		axisFilled: string;
-		filled: string;
-		axisLight: string;
-		axisDark: string;
-		grid: string;
-		built: string;
-	};
+	colorScheme: ColorScheme;
 }
 
 export class SvgRenderer implements RendererInterface, ControlAwareInterface {
-
-	private static readonly COLOR_SCHEMES: { [key: string]: ColorScheme } = {
-		classic: {
-			name: 'Classic',
-			colors: {
-				axisFilled: '#880000',
-				filled: '#FF0000',
-				axisLight: '#CCCCCC',
-				axisDark: '#AAAAAA',
-				grid: '#bbbbbb',
-				built: '#7711AA',
-			}
-		},
-		ocean: {
-			name: 'Ocean',
-			colors: {
-				axisFilled: '#003366',
-				filled: '#0066CC',
-				axisLight: '#CCE5FF',
-				axisDark: '#99CCFF',
-				grid: '#B3D9FF',
-				built: '#00CC99',
-			}
-		},
-		forest: {
-			name: 'Forest',
-			colors: {
-				axisFilled: '#1B4D1B',
-				filled: '#2E7D32',
-				axisLight: '#C8E6C9',
-				axisDark: '#A5D6A7',
-				grid: '#B9D8B9',
-				built: '#FFA726',
-			}
-		},
-		sunset: {
-			name: 'Sunset',
-			colors: {
-				axisFilled: '#B71C1C',
-				filled: '#FF5722',
-				axisLight: '#FFE0B2',
-				axisDark: '#FFCC80',
-				grid: '#FFD699',
-				built: '#9C27B0',
-			}
-		},
-		monochrome: {
-			name: 'Monochrome',
-			colors: {
-				axisFilled: '#000000',
-				filled: '#404040',
-				axisLight: '#F0F0F0',
-				axisDark: '#D0D0D0',
-				grid: '#C0C0C0',
-				built: '#808080',
-			}
-		},
-		sunny: {
-			name: 'Sunny Day',
-			colors: {
-				axisFilled: '#0072B2',
-				filled: '#56B4E9',
-				axisLight: '#F0E442',
-				axisDark: '#E69F00',
-				grid: '#D0D0D0',
-				built: '#D55E00',
-			}
-		},
-	};
 
 	// Dimensions
 	private dWidth = 5;
@@ -108,26 +27,24 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	public readonly changeEmitter = new EventEmitter<SvgRendererState>();
 
-	private cachedControls: Control[] | null = null;
+	private interactionHandler: SvgHandler | null = null;
 
-	private interactionHandler: SvgInteractionHandler;
-
-	private colorScheme: string;
+	private colorScheme: keyof typeof COLOR_SCHEMES;
 	private svgRendererState: StateHandler;
 
 	constructor(private scaleSize: number, stateHandler: StateHandler) {
 		this.svgRendererState = stateHandler;
-		this.interactionHandler = new SvgInteractionHandler(stateHandler);
 
 		const state = stateHandler.get<SvgRendererState>('svgRenderer', {
 			scale: scaleSize,
 			colorScheme: 'classic'
 		});
+
 		this.colorScheme = state.get('colorScheme');
 	}
 
 	private getColors() {
-		const scheme = SvgRenderer.COLOR_SCHEMES[this.colorScheme] || SvgRenderer.COLOR_SCHEMES.classic;
+		const scheme = COLOR_SCHEMES[this.colorScheme] || COLOR_SCHEMES.classic;
 		return scheme.colors;
 	}
 
@@ -141,8 +58,9 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	private createColorSchemeSelect(): HTMLSelectElement {
 		const select = document.createElement('select');
 
-		for (const key of Object.keys(SvgRenderer.COLOR_SCHEMES)) {
-			const scheme = SvgRenderer.COLOR_SCHEMES[key];
+		for (const key of Object.keys(COLOR_SCHEMES)) {
+			assertStringIsKeyOfColorSchemes(key);
+			const scheme = COLOR_SCHEMES[key];
 			const opt = document.createElement('option');
 			opt.value = key;
 			opt.innerText = scheme.name;
@@ -154,6 +72,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		}
 
 		select.addEventListener('change', () => {
+			assertStringIsKeyOfColorSchemes(select.value);
 			this.colorScheme = select.value;
 			const state = this.svgRendererState.get<SvgRendererState>('svgRenderer', {
 				scale: this.scaleSize,
@@ -167,55 +86,38 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	}
 
 	public getControls(): Control[] {
-		if (!this.cachedControls) {
-			const scale = makeInputControl(ControlGroup.Render, 'scale', 'range', this.scaleSize, (val) => {
-				this.scaleSize = parseInt(val, 10);
-				this.scale();
+		return [
 
-				this.triggerChange();
-			}, { min: "100", max: "2000" });
+			makeButtonControl(ControlGroup.Download, null, 'PNG', async () => {
+				if (!this.interactionHandler) {
+					throw new Error('No SVG to download');
+				}
 
-			const rendererControls: Control[] = [
-				scale,
+				const svgElement = this.interactionHandler.getSvgElement();
+				const canvas = await svgToCanvas(svgElement.outerHTML);
+				const dataUrl = canvas.toDataURL();
+				const filename = (this.lastGenerator?.getDescription() || "circle") + "-download.png";
 
-				makeButtonControl(ControlGroup.Download, null, 'PNG', async () => {
-					if (!this.lastSvg) {
-						throw new Error('No SVG to download');
-					}
+				triggerDownload(dataUrl, filename);
+			}),
 
-					const canvas = await svgToCanvas(this.lastSvg.outerHTML);
-					const dataUrl = canvas.toDataURL();
-					const filename = (this.lastGenerator?.getDescription() || "circle") + "-download.png";
+			makeButtonControl(ControlGroup.Download, null, 'SVG', async () => {
+				if (!this.interactionHandler) {
+					throw new Error('No SVG to download');
+				}
 
-					triggerDownload(dataUrl, filename);
-				}),
+				const svgElement = this.interactionHandler.getSvgElement();
+				const href = "data:image/svg+xml;base64," + btoa(svgElement.outerHTML);
+				const filename = (this.lastGenerator?.getDescription() || "circle") + "-download.svg";
 
-				makeButtonControl(ControlGroup.Download, null, 'SVG', async () => {
-					if (!this.lastSvg) {
-						throw new Error('No SVG to download');
-					}
+				triggerDownload(href, filename);
+			}),
+			{ element: this.createColorSchemeSelect(), label: 'Color Scheme', group: ControlGroup.Render },
 
-					const href = "data:image/svg+xml;base64," + btoa(this.lastSvg.outerHTML);
-					const filename = (this.lastGenerator?.getDescription() || "circle") + "-download.svg";
-
-					triggerDownload(href, filename);
-				}),
-			];
-
-			const colorSchemeControl: Control[] = [
-				{ element: this.createColorSchemeSelect(), label: 'Color Scheme', group: ControlGroup.Render },
-			];
-
-			const interactionControls = this.interactionHandler.getControls();
-			const infoControls: Control[] = [
-				this.blocks,
-				this.stacksOf64,
-				this.stacksOf16,
-			];
-
-			this.cachedControls = rendererControls.concat(colorSchemeControl, interactionControls, infoControls);
-		}
-		return this.cachedControls;
+			this.blocks,
+			this.stacksOf64,
+			this.stacksOf16,
+		];
 	}
 
 
@@ -245,43 +147,41 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		}
 
 		if (color) {
-			const classes = [CLASS_FILLED];
-			if (filled && this.interactionHandler.isSquareBuilt(x, y)) {
-				classes.push(CLASS_BUILT);
-			}
-			const classStr = filled ? classes.join(' ') : '';
+			const classStr = filled ? CLASS_FILLED : '';
 			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${classStr}" ${ATTR_X}="${x}" ${ATTR_Y}="${y}" />`;
 		}
 
 		return '';
 	}
 
-	private lastSvg: SVGElement | null = null;
 
-	public render(target: HTMLElement, generator: GeneratorInterface2D): void {
-		const svg = this.generateSVG(generator);
 
-		target.innerHTML = svg;
+	public render(target: HTMLElement, generator: GeneratorInterface2D): RenderOutput {
+		const [svg, descriptor] = this.generateSVG(generator);
 
-		this.lastSvg = target.querySelector('svg');
+		this.interactionHandler = new SvgHandler(
+			svg,
+			this.scaleSize,
+			this.svgRendererState,
+			descriptor,
+		);
+		this.interactionHandler.setScale(this.scaleSize);
 
-		if (this.lastSvg) {
-			this.interactionHandler.attachToSvg(this.lastSvg);
-		}
+		target.innerHTML = '';
+		target.appendChild(svg);
 
-		this.scale();
+		return this.interactionHandler;
 	}
 
 	private lastGenerator: GeneratorInterface2D | null = null;
 
-	private generateSVG(generator: GeneratorInterface2D): string {
+	private generateSVG(generator: GeneratorInterface2D): [SVGElement, string] {
+		const bounds = generator.getBounds();
+
 		this.lastGenerator = generator;
-		const { minX, maxX, minY, maxY } = generator.getBounds();
+		const { minX, maxX, minY, maxY } = bounds;
 		const width = maxX - minX;
 		const height = maxY - minY;
-
-		// Clear built squares if dimensions changed
-		this.interactionHandler.clearBuiltSquaresIfDimensionsChanged(width, height);
 
 		const svgWidth = this.dFull * (width + 1);
 		const svgHeight = this.dFull * (height + 1);
@@ -339,7 +239,11 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		parts.push(this.renderGridLines(height, svgWidth, half, centerY, false));
 
 		parts.push(`</svg>`);
-		return parts.join('');
+
+		const parser = new DOMParser();
+		const doc = parser.parseFromString(parts.join(''), "image/svg+xml");
+
+		return [doc.documentElement as any as SVGElement, generator.getDescription()];
 	}
 
 	private renderGridLines(
@@ -367,30 +271,4 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	}
 
 
-	private scale() {
-		if (!this.lastSvg) {
-			throw new Error(`Error finding ${SVG_ID}`);
-		}
-		const h = this.lastSvg.getAttribute(ATTR_H);
-		const w = this.lastSvg.getAttribute(ATTR_W);
-		if (!h || !w) {
-			throw new Error("error getting requisite data attributes");
-		}
-
-		const wn = parseInt(w, 10);
-		const hn = parseInt(h, 10);
-
-		const aspect = hn / wn;
-
-		let scale = this.scaleSize;
-		scale = scale * (wn * .01);
-
-		const scaleX = scale;
-		const scaleY = scale * aspect;
-
-		this.lastSvg.setAttribute('width', scaleX + 'px');
-		this.lastSvg.setAttribute('height', scaleY + 'px');
-		this.lastSvg.style.width = scaleX + 'px';
-		this.lastSvg.style.height = scaleY + 'px';
-	}
 }
