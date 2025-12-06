@@ -1,5 +1,5 @@
 import { GeneratorInterface2D, Bounds } from "./GeneratorInterface2D";
-import { ControlAwareInterface, makeInputControl, Control } from "../Controller";
+import { ControlAwareInterface, ControlGroup, makeInputControl, Control } from "../Controls";
 import { distance } from "../Math";
 import { EventEmitter } from "../EventEmitter";
 import { NeverError } from "../Errors";
@@ -45,13 +45,12 @@ interface CircleState {
 
 export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 
-	private circleModeControlElm = document.createElement('select');
-
 	public readonly changeEmitter = new EventEmitter<{ event: string, state: CircleState }>();
 
 	private widthControl: Control<HTMLInputElement>;
 	private heightControl: Control<HTMLInputElement>;
 	private forceCircleControl: Control<HTMLInputElement>;
+	private cachedControls: Control[] | null = null;
 
 	constructor(
 		private width: number,
@@ -60,23 +59,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 		private force : boolean,
 	) {
 
-		for (const item of Object.keys(CircleModes)) {
-			const opt = document.createElement('option');
-			opt.innerText = item;
-			this.circleModeControlElm.appendChild(opt);
-
-			if (item == this.mode) {
-				opt.selected = true;
-			}
-		}
-
-		this.circleModeControlElm.addEventListener('change', () => {
-			this.setMode(this.circleModeControlElm.value as CircleModes);
-
-			this.triggerChange('mode');
-		});
-
-		this.widthControl = makeInputControl('Shape', 'width', "number", this.width, () => {
+		this.widthControl = makeInputControl(ControlGroup.Shape, 'width', "number", this.width, () => {
 			if (this.force) {
 				this.heightControl.element.value = this.widthControl.element.value;
 				this.height = parseInt(this.widthControl.element.value, 10);
@@ -86,7 +69,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 			this.triggerChange('width');
 		});
 
-		this.heightControl = makeInputControl('Shape', 'height', "number", this.height, () => {
+		this.heightControl = makeInputControl(ControlGroup.Shape, 'height', "number", this.height, () => {
 			if (this.force) {
 				this.widthControl.element.value = this.heightControl.element.value;
 				this.width = parseInt(this.heightControl.element.value, 10);
@@ -96,7 +79,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 			this.triggerChange('height');
 		});
 
-		this.forceCircleControl = makeInputControl('Shape', 'Force Circle', "checkbox", "1", () => {
+		this.forceCircleControl = makeInputControl(ControlGroup.Shape, 'Force Circle', "checkbox", "1", () => {
 			// this.heightControl.element.value = this.widthControl.element.value;
 			this.force = this.forceCircleControl.element.checked;
 
@@ -122,13 +105,37 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 		});
 	}
 
+	private createModeSelectElement(): HTMLSelectElement {
+		const select = document.createElement('select');
+
+		for (const item of Object.keys(CircleModes)) {
+			const opt = document.createElement('option');
+			opt.innerText = item;
+			select.appendChild(opt);
+
+			if (item == this.mode) {
+				opt.selected = true;
+			}
+		}
+
+		select.addEventListener('change', () => {
+			this.setMode(select.value as CircleModes);
+			this.triggerChange('mode');
+		});
+
+		return select;
+	}
+
 	public getControls(): Control[] {
-		return [
-			this.forceCircleControl,
-			this.widthControl,
-			this.heightControl,
-			{ element: this.circleModeControlElm, label: 'border', group: 'Render' },
-		];
+		if (!this.cachedControls) {
+			this.cachedControls = [
+				this.forceCircleControl,
+				this.widthControl,
+				this.heightControl,
+				{ element: this.createModeSelectElement(), label: 'border', group: ControlGroup.Render },
+			];
+		}
+		return this.cachedControls;
 	}
 
 	private setMode(mode: CircleModes): void {
@@ -168,7 +175,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 	}
 
 	public getDescription(): string {
-		return `Circle-${this.width}x${this.height}`;
+		return `Circle-${this.width}x${this.height}-${this.mode}`;
 	}
 
 }
