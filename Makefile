@@ -19,5 +19,8 @@ clean:
 
 .PHONY: lint
 lint:
-	npx tslint -c tslint.json 'src/**/*.ts' --fix
+	npx tslint -c tslint.json 'src/**/*.ts'
 
+.PHONY: lint-fix
+lint-fix:
+	npx tslint -c tslint.json --fix 'src/**/*.ts'

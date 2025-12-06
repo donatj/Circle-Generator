@@ -6,6 +6,7 @@ import { xor } from "../../Math";
 import { svgToCanvas, triggerDownload } from "../../Utils";
 import { StateHandler } from "../../State";
 import { SvgInteractionHandler } from "./SvgInteractionHandler";
+import { CLASS_BUILT, CLASS_FILLED, ATTR_X, ATTR_Y, ATTR_W, ATTR_H, SVG_NAMESPACE, SVG_ID } from "./SvgConstants";
 
 interface SvgRendererState {
 	scale: number;
@@ -25,10 +26,6 @@ interface ColorScheme {
 }
 
 export class SvgRenderer implements RendererInterface, ControlAwareInterface {
-
-	// CSS class names
-	private static readonly CLASS_FILLED = 'filled';
-	private static readonly CLASS_BUILT = 'built';
 
 	private static readonly COLOR_SCHEMES: { [key: string]: ColorScheme } = {
 		classic: {
@@ -98,16 +95,6 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 			}
 		},
 	};
-
-	// Data attributes
-	private static readonly ATTR_X = 'data-x';
-	private static readonly ATTR_Y = 'data-y';
-	private static readonly ATTR_W = 'data-w';
-	private static readonly ATTR_H = 'data-h';
-
-	// SVG
-	private static readonly SVG_NAMESPACE = 'http://www.w3.org/2000/svg';
-	private static readonly SVG_ID = 'svg_circle';
 
 	// Dimensions
 	private dWidth = 5;
@@ -258,12 +245,12 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		}
 
 		if (color) {
-			const classes = [SvgRenderer.CLASS_FILLED];
+			const classes = [CLASS_FILLED];
 			if (filled && this.interactionHandler.isSquareBuilt(x, y)) {
-				classes.push(SvgRenderer.CLASS_BUILT);
+				classes.push(CLASS_BUILT);
 			}
 			const classStr = filled ? classes.join(' ') : '';
-			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${classStr}" ${SvgRenderer.ATTR_X}="${x}" ${SvgRenderer.ATTR_Y}="${y}" />`;
+			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${classStr}" ${ATTR_X}="${x}" ${ATTR_Y}="${y}" />`;
 		}
 
 		return '';
@@ -305,26 +292,26 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const parts: string[] = [];
 		const colors = this.getColors();
 
-		parts.push(`<svg id="${SvgRenderer.SVG_ID}"
-			xmlns="${SvgRenderer.SVG_NAMESPACE}"
-			${SvgRenderer.ATTR_W}="${svgWidth}" ${SvgRenderer.ATTR_H}="${svgHeight}"
+		parts.push(`<svg id="${SVG_ID}"
+			xmlns="${SVG_NAMESPACE}"
+			${ATTR_W}="${svgWidth}" ${ATTR_H}="${svgHeight}"
 			width="${svgWidth}px" height="${svgHeight}px"
 			viewBox="0 0 ${svgWidth} ${svgHeight}">
 			<style>
-				.${SvgRenderer.CLASS_FILLED} {
+				.${CLASS_FILLED} {
 					cursor: pointer;
 					transition: fill 0.3s;
 				}
 
-				.${SvgRenderer.CLASS_FILLED}:hover {
+				.${CLASS_FILLED}:hover {
 					fill: ${colors.built};
 				}
 
-				.${SvgRenderer.CLASS_FILLED}.${SvgRenderer.CLASS_BUILT} {
+				.${CLASS_FILLED}.${CLASS_BUILT} {
 					fill: ${colors.built};
 				}
 
-				.${SvgRenderer.CLASS_FILLED}.${SvgRenderer.CLASS_BUILT}:hover {
+				.${CLASS_FILLED}.${CLASS_BUILT}:hover {
 					fill: inherit;
 				}
 			</style>
@@ -382,10 +369,10 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	private scale() {
 		if (!this.lastSvg) {
-			throw new Error(`Error finding ${SvgRenderer.SVG_ID}`);
+			throw new Error(`Error finding ${SVG_ID}`);
 		}
-		const h = this.lastSvg.getAttribute(SvgRenderer.ATTR_H);
-		const w = this.lastSvg.getAttribute(SvgRenderer.ATTR_W);
+		const h = this.lastSvg.getAttribute(ATTR_H);
+		const w = this.lastSvg.getAttribute(ATTR_W);
 		if (!h || !w) {
 			throw new Error("error getting requisite data attributes");
 		}

@@ -1,5 +1,6 @@
 import { Control, ControlAwareInterface, ControlGroup, makeButtonControl } from "../../Controls";
 import { StateHandler, StateItem } from "../../State";
+import { CLASS_BUILT, CLASS_FILLED, ATTR_X, ATTR_Y } from "./SvgConstants";
 
 interface BuiltSquaresState {
 	built: string[];
@@ -8,14 +9,6 @@ interface BuiltSquaresState {
 }
 
 export class SvgInteractionHandler implements ControlAwareInterface {
-
-	// CSS class names
-	private static readonly CLASS_FILLED = 'filled';
-	private static readonly CLASS_BUILT = 'built';
-
-	// Data attributes
-	private static readonly ATTR_X = 'data-x';
-	private static readonly ATTR_Y = 'data-y';
 
 	private builtSquaresState: StateItem<BuiltSquaresState>;
 	private builtSquares: Set<string> = new Set();
@@ -77,8 +70,8 @@ export class SvgInteractionHandler implements ControlAwareInterface {
 	}
 
 	private getCoordFromElement(element: HTMLElement): { x: number; y: number } | null {
-		const xAttr = element.getAttribute(SvgInteractionHandler.ATTR_X);
-		const yAttr = element.getAttribute(SvgInteractionHandler.ATTR_Y);
+		const xAttr = element.getAttribute(ATTR_X);
+		const yAttr = element.getAttribute(ATTR_Y);
 
 		if (xAttr === null || yAttr === null) {
 			return null;
@@ -92,8 +85,8 @@ export class SvgInteractionHandler implements ControlAwareInterface {
 
 	private clearBuiltSquares(): void {
 		this.builtSquares.clear();
-		document.querySelectorAll(`.${SvgInteractionHandler.CLASS_BUILT}`).forEach(el => {
-			el.classList.remove(SvgInteractionHandler.CLASS_BUILT);
+		document.querySelectorAll(`.${CLASS_BUILT}`).forEach(el => {
+			el.classList.remove(CLASS_BUILT);
 		});
 	}
 
@@ -102,10 +95,10 @@ export class SvgInteractionHandler implements ControlAwareInterface {
 
 		if (mode === 'add') {
 			this.builtSquares.add(coordKey);
-			element.classList.add(SvgInteractionHandler.CLASS_BUILT);
+			element.classList.add(CLASS_BUILT);
 		} else {
 			this.builtSquares.delete(coordKey);
-			element.classList.remove(SvgInteractionHandler.CLASS_BUILT);
+			element.classList.remove(CLASS_BUILT);
 		}
 
 		this.builtSquaresState.set('built', Array.from(this.builtSquares));
@@ -113,7 +106,7 @@ export class SvgInteractionHandler implements ControlAwareInterface {
 
 	private handlePointerDown = (e: PointerEvent): void => {
 		const element = e.target as HTMLElement;
-		if (element.classList.contains(SvgInteractionHandler.CLASS_FILLED)) {
+		if (element.classList.contains(CLASS_FILLED)) {
 			e.preventDefault();
 			this.isDragging = true;
 			this.processedDuringDrag.clear();
@@ -140,7 +133,7 @@ export class SvgInteractionHandler implements ControlAwareInterface {
 		if (!this.isDragging) return;
 
 		const element = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement;
-		if (element && element.classList.contains(SvgInteractionHandler.CLASS_FILLED)) {
+		if (element && element.classList.contains(CLASS_FILLED)) {
 			const coord = this.getCoordFromElement(element);
 			if (coord) {
 				const coordKey = this.coordToKey(coord.x, coord.y);

@@ -5,7 +5,7 @@ This notice may not be removed or altered from any source distribution.
 */
 
 import { GeneratorInterface2D } from "./Generators/GeneratorInterface2D";
-import { SvgRenderer } from "./Renderers/SvgRenderer";
+import { SvgRenderer } from "./Renderers/Svg/SvgRenderer";
 import { RendererInterface } from "./Renderers/RendererInterface";
 import { Circle, CircleModes } from "./Generators/Circle";
 import { StateHandler } from "./State";
