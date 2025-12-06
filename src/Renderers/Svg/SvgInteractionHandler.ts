@@ -1,5 +1,5 @@
-import { Control, ControlAwareInterface, ControlGroup, makeButtonControl } from "../Controls";
-import { StateHandler, StateItem } from "../State";
+import { Control, ControlAwareInterface, ControlGroup, makeButtonControl } from "../../Controls";
+import { StateHandler, StateItem } from "../../State";
 
 interface BuiltSquaresState {
 	built: string[];

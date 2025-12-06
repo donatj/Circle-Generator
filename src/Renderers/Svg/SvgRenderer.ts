@@ -1,10 +1,10 @@
-import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
-import { RendererInterface } from "./RendererInterface";
-import { Control, ControlAwareInterface, ControlGroup, InfoControl, makeButtonControl, makeInputControl } from "../Controls";
-import { EventEmitter } from "../EventEmitter";
-import { xor } from "../Math";
-import { svgToCanvas, triggerDownload } from "../Utils";
-import { StateHandler } from "../State";
+import { GeneratorInterface2D } from "../../Generators/GeneratorInterface2D";
+import { RendererInterface } from "../RendererInterface";
+import { Control, ControlAwareInterface, ControlGroup, InfoControl, makeButtonControl, makeInputControl } from "../../Controls";
+import { EventEmitter } from "../../EventEmitter";
+import { xor } from "../../Math";
+import { svgToCanvas, triggerDownload } from "../../Utils";
+import { StateHandler } from "../../State";
 import { SvgInteractionHandler } from "./SvgInteractionHandler";
 
 interface SvgRendererState {
@@ -140,7 +140,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	}
 
 	private getColors() {
-		const scheme = SvgRenderer.COLOR_SCHEMES[this.colorScheme] || SvgRenderer.COLOR_SCHEMES['classic'];
+		const scheme = SvgRenderer.COLOR_SCHEMES[this.colorScheme] || SvgRenderer.COLOR_SCHEMES.classic;
 		return scheme.colors;
 	}
 
@@ -154,7 +154,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	private createColorSchemeSelect(): HTMLSelectElement {
 		const select = document.createElement('select');
 
-		for (const key in SvgRenderer.COLOR_SCHEMES) {
+		for (const key of Object.keys(SvgRenderer.COLOR_SCHEMES)) {
 			const scheme = SvgRenderer.COLOR_SCHEMES[key];
 			const opt = document.createElement('option');
 			opt.value = key;
