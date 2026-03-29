@@ -12,7 +12,7 @@
   "author": "Jesse G. Donat",
   "license": "MIT",
   "devDependencies": {
-    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-terser": "^1.0.0",
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/robust-point-in-polygon": "^1.0.0",
     "rollup": "^4.59.0",
