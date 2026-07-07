@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Generates Pixel Circles",
   "main": "lib/generator.js",
+  "type": "module",
   "directories": {
     "lib": "lib"
   },
