@@ -47,7 +47,7 @@ export class StateHandler {
 		private key: string = "CircleGeneratorState"
 	) {
 		try {
-			const state = storage.getItem(key);
+			const state = this.storage.getItem(this.key);
 			if (state) {
 				const parsed = JSON.parse(state) as unknown;
 				if (isStoredState(parsed)) {
@@ -59,7 +59,7 @@ export class StateHandler {
 		}
 	}
 
-	public get<T extends object>(name: string, defaultValue: T): StateItem<T> {
+	public get<T extends { [key: string]: unknown }>(name: string, defaultValue: T): StateItem<T> {
 		const stored = this.state[name];
 
 		if (stored) {

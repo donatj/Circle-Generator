@@ -34,6 +34,9 @@ test("circle modes produce stable 5x5 cell counts", () => {
 	assert.equal(filledCellCount(5, 5, CircleModes.thin), 12);
 	assert.equal(isCircleFilled(0, 0, 5, 5, CircleModes.filled), false);
 	assert.equal(isCircleFilled(2, 2, 5, 5, CircleModes.filled), true);
+	assert.equal(isCircleFilled(0, 0, 0, 5, CircleModes.filled), false);
+	assert.equal(isCircleFilled(0, 0, 5, -1, CircleModes.filled), false);
+	assert.equal(isCircleFilled(0, 0, 2.5, 5, CircleModes.filled), false);
 });
 
 test("state ignores malformed JSON and preserves defaults", () => {

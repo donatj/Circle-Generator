@@ -46,6 +46,10 @@ export function isCircleFilled(
 	height: number,
 	mode: CircleModes
 ): boolean {
+	if (!areValidDimensions(width, height)) {
+		return false;
+	}
+
 	x = -.5 * (width - 2 * (x + .5));
 	y = -.5 * (height - 2 * (y + .5));
 
