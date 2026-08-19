@@ -203,12 +203,17 @@ export class MainController {
 			el.scrollBy(-e.movementX, -e.movementY);
 		});
 
-		el.addEventListener("pointerup", (e: PointerEvent) => {
-			if (e.pointerType !== "mouse") return;
+		const endDrag = (e: PointerEvent) => {
+			if (e.pointerType !== "mouse" || !isDown) return;
 			isDown = false;
-			el.releasePointerCapture(e.pointerId);
+			if (el.hasPointerCapture(e.pointerId)) {
+				el.releasePointerCapture(e.pointerId);
+			}
 			el.style.cursor = "grab";
-		});
+		};
+
+		el.addEventListener("pointerup", endDrag);
+		el.addEventListener("pointercancel", endDrag);
 	}
 
 
