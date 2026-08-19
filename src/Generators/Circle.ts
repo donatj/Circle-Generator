@@ -1,5 +1,5 @@
 import { GeneratorInterface2D, Bounds } from "./GeneratorInterface2D";
-import { ControlAwareInterface, makeInputControl, Control } from "../Controller";
+import { ControlAwareInterface, makeInputControl, Control } from "../Controls";
 import { distance } from "../Math";
 import { EventEmitter } from "../EventEmitter";
 import { NeverError } from "../Errors";
@@ -9,6 +9,9 @@ export enum CircleModes {
 	thin = 'thin',
 	filled = 'filled',
 }
+
+export const DEFAULT_CIRCLE_DIMENSION = 13;
+export const MAX_CIRCLE_CELLS = 200 * 200;
 
 function filled(x: number, y: number, radius: number, ratio: number): boolean {
 	return distance(x, y, ratio) <= radius;
@@ -36,6 +39,49 @@ function thinfilled(x: number, y: number, radius: number, ratio: number): boolea
 	);
 }
 
+export function isCircleFilled(
+	x: number,
+	y: number,
+	width: number,
+	height: number,
+	mode: CircleModes
+): boolean {
+	x = -.5 * (width - 2 * (x + .5));
+	y = -.5 * (height - 2 * (y + .5));
+
+	switch (mode) {
+		case CircleModes.thick: {
+			return fatfilled(x, y, width / 2, width / height);
+		}
+		case CircleModes.thin: {
+			return thinfilled(x, y, width / 2, width / height);
+		}
+		case CircleModes.filled: {
+			return filled(x, y, width / 2, width / height);
+		}
+		default: {
+			throw new NeverError(mode);
+		}
+	}
+}
+
+function isCircleMode(value: unknown): value is CircleModes {
+	return Object.values(CircleModes).includes(value as CircleModes);
+}
+
+function isValidDimension(value: number): boolean {
+	return Number.isSafeInteger(value) && value > 0;
+}
+
+function areValidDimensions(width: number, height: number): boolean {
+	return isValidDimension(width) && isValidDimension(height) && width * height <= MAX_CIRCLE_CELLS;
+}
+
+function parseDimension(value: string): number | null {
+	const parsed = Number(value);
+	return isValidDimension(parsed) ? parsed : null;
+}
+
 interface CircleState {
 	mode: CircleModes;
 	width: number;
@@ -59,6 +105,14 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 		private mode : CircleModes,
 		private force : boolean,
 	) {
+		if (!areValidDimensions(this.width, this.height)) {
+			this.width = DEFAULT_CIRCLE_DIMENSION;
+			this.height = DEFAULT_CIRCLE_DIMENSION;
+		}
+
+		if (!isCircleMode(this.mode)) {
+			this.mode = CircleModes.thick;
+		}
 
 		for (const item of Object.keys(CircleModes)) {
 			const opt = document.createElement('option');
@@ -77,37 +131,60 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 		});
 
 		this.widthControl = makeInputControl('Shape', 'width', "number", this.width, () => {
-			if (this.force) {
-				this.heightControl.element.value = this.widthControl.element.value;
-				this.height = parseInt(this.widthControl.element.value, 10);
+			const updatedWidth = parseDimension(this.widthControl.element.value);
+			if (updatedWidth === null) {
+				this.syncDimensionControls();
+				return;
 			}
-			this.width = parseInt(this.widthControl.element.value, 10);
 
-			this.triggerChange('width');
-		});
+			this.updateDimensions(updatedWidth, this.force ? updatedWidth : this.height, 'width');
+		}, { min: '1', step: '1' });
 
 		this.heightControl = makeInputControl('Shape', 'height', "number", this.height, () => {
-			if (this.force) {
-				this.widthControl.element.value = this.heightControl.element.value;
-				this.width = parseInt(this.heightControl.element.value, 10);
+			const updatedHeight = parseDimension(this.heightControl.element.value);
+			if (updatedHeight === null) {
+				this.syncDimensionControls();
+				return;
 			}
-			this.height = parseInt(this.heightControl.element.value, 10);
 
-			this.triggerChange('height');
-		});
+			this.updateDimensions(this.force ? updatedHeight : this.width, updatedHeight, 'height');
+		}, { min: '1', step: '1' });
 
 		this.forceCircleControl = makeInputControl('Shape', 'Force Circle', "checkbox", "1", () => {
-			// this.heightControl.element.value = this.widthControl.element.value;
 			this.force = this.forceCircleControl.element.checked;
 
-			// There's gotta be a cleaner way to do this, but this works for now avoiding recursive event calls
-			this.height = this.width;
-			this.heightControl.element.value = this.widthControl.element.value;
+			if (this.force && !areValidDimensions(this.width, this.width)) {
+				this.force = false;
+				this.forceCircleControl.element.checked = false;
+				return;
+			}
 
-			this.triggerChange('force')
+			if (this.force) {
+				this.height = this.width;
+				this.syncDimensionControls();
+			}
+
+			this.triggerChange('force');
 		});
 
 		this.forceCircleControl.element.checked = this.force;
+	}
+
+	private syncDimensionControls(): void {
+		this.widthControl.element.value = `${this.width}`;
+		this.heightControl.element.value = `${this.height}`;
+	}
+
+	private updateDimensions(width: number, height: number, event: string): void {
+		if (!areValidDimensions(width, height)) {
+			this.syncDimensionControls();
+			return;
+		}
+
+		this.width = width;
+		this.height = height;
+		this.syncDimensionControls();
+		this.triggerChange(event);
 	}
 
 	private triggerChange(event: string): void {
@@ -146,25 +223,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 	}
 
 	public isFilled(x: number, y: number): boolean {
-		const bounds = this.getBounds();
-
-		x = -.5 * (bounds.maxX - 2 * (x + .5));
-		y = -.5 * (bounds.maxY - 2 * (y + .5));
-
-		switch (this.mode) {
-			case CircleModes.thick: {
-				return fatfilled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
-			}
-			case CircleModes.thin: {
-				return thinfilled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
-			}
-			case CircleModes.filled: {
-				return filled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
-			}
-			default: {
-				throw new NeverError(this.mode);
-			}
-		}
+		return isCircleFilled(x, y, this.width, this.height, this.mode);
 	}
 
 	public getDescription(): string {
