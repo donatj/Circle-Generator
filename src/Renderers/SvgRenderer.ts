@@ -1,6 +1,6 @@
 import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
 import { RendererInterface } from "./RendererInterface";
-import { Control, ControlAwareInterface, InfoControl, makeButtonControl, makeInputControl } from "../Controller";
+import { Control, ControlAwareInterface, InfoControl, makeButtonControl, makeInputControl } from "../Controls";
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Math";
 import { svgToCanvas } from "../Utils";
