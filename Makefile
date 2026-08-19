@@ -1,20 +1,12 @@
-.PHONY: build
-build: lib/generator.js style.css
-
-lib/generator.js: $(shell find src -name "*.ts")
-	npx rollup --config rollup.config.mjs
-
-style.css: style.scss
-	npx sass style.scss:style.css
-
-.PHONY: dist
-dist: lib/generator.js style.css index.html
+.PHONY: build dist
+build:
 	npx vite build
+
+dist: build
 
 .PHONY: clean
 clean:
 	rm -rf dist
-	rm -rf lib style.css
 
 .PHONY: lint
 lint:
