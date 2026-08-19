@@ -11,7 +11,6 @@ export enum CircleModes {
 }
 
 export const DEFAULT_CIRCLE_DIMENSION = 13;
-export const MAX_CIRCLE_CELLS = 200 * 200;
 
 function filled(x: number, y: number, radius: number, ratio: number): boolean {
 	return distance(x, y, ratio) <= radius;
@@ -78,7 +77,7 @@ function isValidDimension(value: number): boolean {
 }
 
 function areValidDimensions(width: number, height: number): boolean {
-	return isValidDimension(width) && isValidDimension(height) && width * height <= MAX_CIRCLE_CELLS;
+	return isValidDimension(width) && isValidDimension(height);
 }
 
 function parseDimension(value: string): number | null {
