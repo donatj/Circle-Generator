@@ -7,7 +7,6 @@
     "lib": "lib"
   },
   "scripts": {
-    "build": "make dist",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Jesse G. Donat",
@@ -19,9 +18,7 @@
     "rollup": "^4.62.2",
     "sass": "^1.102.0",
     "tslint": "^6",
-    "typescript": "^5.8.3",
-    "vite": "^8.2.1",
-    "vite-plugin-singlefile": "^2.3.3"
+    "typescript": "^5.8.3"
   },
   "dependencies": {
     "robust-point-in-polygon": "^1.0.3"
