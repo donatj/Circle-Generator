@@ -9,6 +9,9 @@
   },
   "author": "Jesse G. Donat",
   "license": "MIT",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "devDependencies": {
     "@types/robust-point-in-polygon": "^1.0.0",
     "sass": "^1.102.0",
