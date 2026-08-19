@@ -7,7 +7,7 @@ This notice may not be removed or altered from any source distribution.
 import { GeneratorInterface2D } from "./Generators/GeneratorInterface2D";
 import { SvgRenderer } from "./Renderers/SvgRenderer";
 import { RendererInterface } from "./Renderers/RendererInterface";
-import { Circle, CircleModes } from "./Generators/Circle";
+import { Circle, CircleCenterModes, CircleModes, FillCheckModes } from "./Generators/Circle";
 import { StateHandler } from "./State";
 
 export interface Control<T extends HTMLElement = HTMLElement> {
@@ -50,6 +50,27 @@ export function makeButtonControl(
 		label,
 		group,
 	};
+}
+
+export function makeModeControl<E extends Record<string, string>>(
+    modeEnum: E,
+    selectedMode: string,
+    onAlter: () => void,
+): HTMLSelectElement {
+    const modeControlElm = document.createElement('select');
+
+    for (const item of Object.keys(modeEnum)) {
+        const opt = document.createElement('option');
+        opt.innerText = modeEnum[item];
+        modeControlElm.appendChild(opt);
+
+        if (item == selectedMode) {
+            opt.selected = true;
+        }
+    }
+
+    modeControlElm.addEventListener('change', onAlter);
+    return modeControlElm;
 }
 
 export function makeInputControl(
@@ -107,10 +128,12 @@ export class MainController {
 		});
 
 		const circleState = this.stateMananger.get("circle", {
-			mode: CircleModes.thick,
+			circleMode: CircleModes.thick,
+            fillCheckMode: FillCheckModes.center,
 			width: 13,
 			height: 13,
 			force: true,
+            circleCenterMode: CircleCenterModes.infer,
 		});
 
 		const w = circleState.get('width');
@@ -118,18 +141,22 @@ export class MainController {
 
 		const circle = new Circle(
 			w, h,
-			circleState.get('mode'),
+			circleState.get('circleMode'),
+            circleState.get('fillCheckMode'),
 			circleState.get('force'),
+            circleState.get('circleCenterMode'),
 		);
 		this.generator = circle;
 		this.generator.changeEmitter.add(() => { this.render(); });
 		this.renderer.changeEmitter.add(() => { this.render(); });
 
 		circle.changeEmitter.add((e) => {
-			circleState.set('mode', e.state.mode);
+			circleState.set('circleMode', e.state.circleMode);
+            circleState.set('fillCheckMode', e.state.fillCheckMode);
 			circleState.set('width', e.state.width);
 			circleState.set('height', e.state.height);
 			circleState.set('force', e.state.force);
+            circleState.set('circleCenterMode', e.state.circleCenterMode);
 		});
 
 		if (w * h > 200 * 200) {
