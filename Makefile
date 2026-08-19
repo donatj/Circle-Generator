@@ -7,10 +7,9 @@ lib/generator.js: $(shell find src -name "*.ts")
 style.css: style.scss
 	npx sass style.scss:style.css
 
-dist: clean lib/generator.js style.css index.html
-	mkdir -p dist/lib
-	cp lib/generator.js dist/lib/generator.js
-	cp style.css index.html dist
+.PHONY: dist
+dist: lib/generator.js style.css index.html
+	npx vite build
 
 .PHONY: clean
 clean:
