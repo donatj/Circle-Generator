@@ -4,7 +4,18 @@
 
 body {
 	font-size: 13px;
-	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+	font-family:
+		system-ui,
+		-apple-system,
+		BlinkMacSystemFont,
+		"Segoe UI",
+		Roboto,
+		Helvetica,
+		Arial,
+		sans-serif,
+		"Apple Color Emoji",
+		"Segoe UI Emoji",
+		"Segoe UI Symbol";
 
 	margin: 0;
 
@@ -21,9 +32,8 @@ body {
 	> #result {
 		grid-area: result;
 		overflow: auto;
-		padding: .5em;
+		padding: 0.5em;
 	}
-
 }
 
 #controls {
@@ -36,10 +46,12 @@ body {
 
 		display: flex;
 		flex-direction: column;
-		
+
 		align-self: stretch;
 
-		input[type="number"], input[type="checkbox"], select {
+		input[type="number"],
+		input[type="checkbox"],
+		select {
 			box-shadow: inset 0 0 0 2px rgb(204 204 204 / 50%);
 			outline: none;
 			border: 1px solid #ccc;
@@ -47,15 +59,17 @@ body {
 			font-size: 1.2em;
 			padding: 3px;
 		}
-	
+
 		input[type="checkbox"] {
 			width: 20px;
 			height: 20px;
 			float: right;
 		}
-	
+
 		label {
-			> input[type="number"], input[type="range"], > select {
+			> input[type="number"],
+			input[type="range"],
+			> select {
 				display: block;
 			}
 		}
@@ -70,6 +84,5 @@ body {
 			margin-left: 10px;
 			font-style: italic;
 		}
-
 	}
 }

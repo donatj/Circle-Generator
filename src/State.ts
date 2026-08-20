@@ -1,13 +1,9 @@
 import { EventEmitter } from "./EventEmitter";
 
-
 export class StateItem<T> {
+	readonly changeEmitter = new EventEmitter<void>();
 
-	readonly changeEmitter = new EventEmitter<void>;
-
-	constructor(
-		private value: T
-	) { }
+	constructor(private value: T) {}
 
 	public get<K extends keyof T>(key: K): T[K] {
 		return this.value[key];
@@ -29,12 +25,11 @@ interface StorageEngine {
 }
 
 export class StateHandler {
-
 	private state: { [key: string]: any } = {};
 
 	constructor(
 		private storage: StorageEngine = window.localStorage,
-		private key: string = "CircleGeneratorState"
+		private key: string = "CircleGeneratorState",
 	) {
 		const state = storage.getItem(key);
 		if (state) {
@@ -43,7 +38,7 @@ export class StateHandler {
 	}
 
 	public get<T extends object>(name: string, defaultValue: T): StateItem<T> {
-		const stored = this.state[name] as Partial<T> || {};
+		const stored = (this.state[name] as Partial<T>) || {};
 
 		Object.assign(defaultValue, stored);
 
@@ -58,5 +53,4 @@ export class StateHandler {
 	public save() {
 		this.storage.setItem(this.key, JSON.stringify(this.state));
 	}
-
 }

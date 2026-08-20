@@ -2,25 +2,30 @@
   "name": "pixel-circle",
   "version": "1.0.0",
   "description": "Generates Pixel Circles",
+  "license": "MIT",
+  "author": "Jesse G. Donat",
   "scripts": {
     "build": "make dist",
     "dev": "vite",
+    "format": "make format",
+    "format:check": "make format-check",
+    "lint": "make lint",
+    "lint:fix": "make lint-fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Jesse G. Donat",
-  "license": "MIT",
-  "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+  "dependencies": {
+    "robust-point-in-polygon": "^1.0.3"
   },
   "devDependencies": {
     "@types/robust-point-in-polygon": "^1.0.0",
+    "oxfmt": "^0.64.0",
+    "oxlint": "^1.79.0",
     "sass": "^1.102.0",
-    "tslint": "^6",
     "typescript": "^5.8.3",
     "vite": "^8.2.1",
     "vite-plugin-singlefile": "^2.3.3"
   },
-  "dependencies": {
-    "robust-point-in-polygon": "^1.0.3"
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
   }
 }

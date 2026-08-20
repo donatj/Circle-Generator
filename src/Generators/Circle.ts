@@ -5,9 +5,9 @@ import { EventEmitter } from "../EventEmitter";
 import { NeverError } from "../Errors";
 
 export enum CircleModes {
-	thick = 'thick',
-	thin = 'thin',
-	filled = 'filled',
+	thick = "thick",
+	thin = "thin",
+	filled = "filled",
 }
 
 function filled(x: number, y: number, radius: number, ratio: number): boolean {
@@ -15,24 +15,30 @@ function filled(x: number, y: number, radius: number, ratio: number): boolean {
 }
 
 function fatfilled(x: number, y: number, radius: number, ratio: number): boolean {
-	return filled(x, y, radius, ratio) && !(
-		filled(x + 1, y, radius, ratio) &&
-		filled(x - 1, y, radius, ratio) &&
-		filled(x, y + 1, radius, ratio) &&
-		filled(x, y - 1, radius, ratio) &&
-		filled(x + 1, y + 1, radius, ratio) &&
-		filled(x + 1, y - 1, radius, ratio) &&
-		filled(x - 1, y - 1, radius, ratio) &&
-		filled(x - 1, y + 1, radius, ratio)
+	return (
+		filled(x, y, radius, ratio) &&
+		!(
+			filled(x + 1, y, radius, ratio) &&
+			filled(x - 1, y, radius, ratio) &&
+			filled(x, y + 1, radius, ratio) &&
+			filled(x, y - 1, radius, ratio) &&
+			filled(x + 1, y + 1, radius, ratio) &&
+			filled(x + 1, y - 1, radius, ratio) &&
+			filled(x - 1, y - 1, radius, ratio) &&
+			filled(x - 1, y + 1, radius, ratio)
+		)
 	);
 }
 
 function thinfilled(x: number, y: number, radius: number, ratio: number): boolean {
-	return filled(x, y, radius, ratio) && !(
-		filled(x + 1, y, radius, ratio) &&
-		filled(x - 1, y, radius, ratio) &&
-		filled(x, y + 1, radius, ratio) &&
-		filled(x, y - 1, radius, ratio)
+	return (
+		filled(x, y, radius, ratio) &&
+		!(
+			filled(x + 1, y, radius, ratio) &&
+			filled(x - 1, y, radius, ratio) &&
+			filled(x, y + 1, radius, ratio) &&
+			filled(x, y - 1, radius, ratio)
+		)
 	);
 }
 
@@ -44,10 +50,9 @@ interface CircleState {
 }
 
 export class Circle implements GeneratorInterface2D, ControlAwareInterface {
+	private circleModeControlElm = document.createElement("select");
 
-	private circleModeControlElm = document.createElement('select');
-
-	public readonly changeEmitter = new EventEmitter<{ event: string, state: CircleState }>();
+	public readonly changeEmitter = new EventEmitter<{ event: string; state: CircleState }>();
 
 	private widthControl: Control<HTMLInputElement>;
 	private heightControl: Control<HTMLInputElement>;
@@ -56,12 +61,11 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 	constructor(
 		private width: number,
 		private height: number,
-		private mode : CircleModes,
-		private force : boolean,
+		private mode: CircleModes,
+		private force: boolean,
 	) {
-
 		for (const item of Object.keys(CircleModes)) {
-			const opt = document.createElement('option');
+			const opt = document.createElement("option");
 			opt.innerText = item;
 			this.circleModeControlElm.appendChild(opt);
 
@@ -70,33 +74,33 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 			}
 		}
 
-		this.circleModeControlElm.addEventListener('change', () => {
+		this.circleModeControlElm.addEventListener("change", () => {
 			this.setMode(this.circleModeControlElm.value as CircleModes);
 
-			this.triggerChange('mode');
+			this.triggerChange("mode");
 		});
 
-		this.widthControl = makeInputControl('Shape', 'width', "number", this.width, () => {
+		this.widthControl = makeInputControl("Shape", "width", "number", this.width, () => {
 			if (this.force) {
 				this.heightControl.element.value = this.widthControl.element.value;
 				this.height = parseInt(this.widthControl.element.value, 10);
 			}
 			this.width = parseInt(this.widthControl.element.value, 10);
 
-			this.triggerChange('width');
+			this.triggerChange("width");
 		});
 
-		this.heightControl = makeInputControl('Shape', 'height', "number", this.height, () => {
+		this.heightControl = makeInputControl("Shape", "height", "number", this.height, () => {
 			if (this.force) {
 				this.widthControl.element.value = this.heightControl.element.value;
 				this.width = parseInt(this.heightControl.element.value, 10);
 			}
 			this.height = parseInt(this.heightControl.element.value, 10);
 
-			this.triggerChange('height');
+			this.triggerChange("height");
 		});
 
-		this.forceCircleControl = makeInputControl('Shape', 'Force Circle', "checkbox", "1", () => {
+		this.forceCircleControl = makeInputControl("Shape", "Force Circle", "checkbox", "1", () => {
 			// this.heightControl.element.value = this.widthControl.element.value;
 			this.force = this.forceCircleControl.element.checked;
 
@@ -104,7 +108,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 			this.height = this.width;
 			this.heightControl.element.value = this.widthControl.element.value;
 
-			this.triggerChange('force')
+			this.triggerChange("force");
 		});
 
 		this.forceCircleControl.element.checked = this.force;
@@ -118,7 +122,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 				width: this.width,
 				height: this.height,
 				force: this.force,
-			}
+			},
 		});
 	}
 
@@ -127,7 +131,7 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 			this.forceCircleControl,
 			this.widthControl,
 			this.heightControl,
-			{ element: this.circleModeControlElm, label: 'border', group: 'Render' },
+			{ element: this.circleModeControlElm, label: "border", group: "Render" },
 		];
 	}
 
@@ -148,18 +152,18 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 	public isFilled(x: number, y: number): boolean {
 		const bounds = this.getBounds();
 
-		x = -.5 * (bounds.maxX - 2 * (x + .5));
-		y = -.5 * (bounds.maxY - 2 * (y + .5));
+		x = -0.5 * (bounds.maxX - 2 * (x + 0.5));
+		y = -0.5 * (bounds.maxY - 2 * (y + 0.5));
 
 		switch (this.mode) {
 			case CircleModes.thick: {
-				return fatfilled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
+				return fatfilled(x, y, bounds.maxX / 2, bounds.maxX / bounds.maxY);
 			}
 			case CircleModes.thin: {
-				return thinfilled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
+				return thinfilled(x, y, bounds.maxX / 2, bounds.maxX / bounds.maxY);
 			}
 			case CircleModes.filled: {
-				return filled(x, y, (bounds.maxX / 2), bounds.maxX / bounds.maxY);
+				return filled(x, y, bounds.maxX / 2, bounds.maxX / bounds.maxY);
 			}
 			default: {
 				throw new NeverError(this.mode);
@@ -170,5 +174,4 @@ export class Circle implements GeneratorInterface2D, ControlAwareInterface {
 	public getDescription(): string {
 		return `Circle-${this.width}x${this.height}`;
 	}
-
 }

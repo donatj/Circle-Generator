@@ -1,22 +1,17 @@
 <!doctype html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Pixel Circle Generator</title>
+    <link rel="stylesheet" href="./style.scss" />
+  </head>
 
-<head>
-	<meta charset="utf-8" />
-	<title>Pixel Circle Generator</title>
-	<link rel="stylesheet" href="./style.scss" />
-</head>
-
-<body>
-	<div id="controls"></div>
-	<div id="result"></div>
-	<script type="module">
-		import { MainController } from './src/Controller.ts';
-		new MainController(
-			document.getElementById("controls"),
-			document.getElementById("result"),
-		);
-	</script>
-</body>
-
+  <body>
+    <div id="controls"></div>
+    <div id="result"></div>
+    <script type="module">
+      import { MainController } from "./src/Controller.ts";
+      new MainController(document.getElementById("controls"), document.getElementById("result"));
+    </script>
+  </body>
 </html>
