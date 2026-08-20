@@ -123,7 +123,6 @@ export class MainController {
 		);
 		this.generator = circle;
 		this.generator.changeEmitter.add(() => { this.render(); });
-		this.renderer.changeEmitter.add(() => { this.render(); });
 
 		circle.changeEmitter.add((e) => {
 			circleState.set('mode', e.state.mode);
@@ -160,6 +159,7 @@ export class MainController {
 				if (dlg.returnValue === "yes") {
 					this.renderControls();
 					this.render();
+					this.makeResultDraggable();
 				} else {
 					circleState.set('width', 5);
 					circleState.set('height', 5);
@@ -180,13 +180,50 @@ export class MainController {
 
 	private makeResultDraggable() {
 		let isDown = false;
+		const touchPoints = new Map<number, { x: number, y: number }>();
+		let pinchStartDistance: number | null = null;
+		let pinchStartScale: number | null = null;
 		const el = this.result;
 
 		el.style.cursor = "grab";
 		el.style.userSelect = "none";
-		// el.style.touchAction = "none";
+		el.style.touchAction = "none";
+
+		const startPinch = () => {
+			if (touchPoints.size !== 2) {
+				pinchStartDistance = null;
+				pinchStartScale = null;
+				return;
+			}
+
+			const distance = getTouchDistance();
+			if (distance === null) {
+				return;
+			}
+
+			pinchStartDistance = distance;
+			pinchStartScale = this.renderer.getScale();
+		};
+
+		const getTouchDistance = (): number | null => {
+			if (touchPoints.size !== 2) {
+				return null;
+			}
+
+			const points = Array.from(touchPoints.values());
+			const x = points[0].x - points[1].x;
+			const y = points[0].y - points[1].y;
+			return Math.sqrt((x * x) + (y * y));
+		};
 
 		el.addEventListener("pointerdown", (e: PointerEvent) => {
+			if (e.pointerType === "touch") {
+				touchPoints.set(e.pointerId, { x: e.clientX, y: e.clientY });
+				el.setPointerCapture(e.pointerId);
+				startPinch();
+				return;
+			}
+
 			const target = e.target as HTMLElement|SVGElement|null;
 			if (target && target.classList.contains("filled")) {
 				return;
@@ -199,9 +236,39 @@ export class MainController {
 		});
 
 		el.addEventListener("pointermove", (e: PointerEvent) => {
-			if (!isDown) return;
+			if (e.pointerType === "touch") {
+				const previousPoint = touchPoints.get(e.pointerId);
+				if (!previousPoint) {
+					return;
+				}
+
+				touchPoints.set(e.pointerId, { x: e.clientX, y: e.clientY });
+				if (touchPoints.size === 2 && pinchStartDistance && pinchStartScale) {
+					const distance = getTouchDistance();
+					if (distance !== null) {
+						this.renderer.setScale(pinchStartScale * (distance / pinchStartDistance));
+					}
+				} else if (touchPoints.size === 1) {
+					el.scrollBy(previousPoint.x - e.clientX, previousPoint.y - e.clientY);
+				}
+				return;
+			}
+
+			if (e.pointerType !== "mouse" || !isDown) return;
 			el.scrollBy(-e.movementX, -e.movementY);
 		});
+
+		const endTouch = (e: PointerEvent) => {
+			if (e.pointerType !== "touch") {
+				return;
+			}
+
+			touchPoints.delete(e.pointerId);
+			if (el.hasPointerCapture(e.pointerId)) {
+				el.releasePointerCapture(e.pointerId);
+			}
+			startPinch();
+		};
 
 		const endDrag = (e: PointerEvent) => {
 			if (e.pointerType !== "mouse" || !isDown) return;
@@ -214,6 +281,8 @@ export class MainController {
 
 		el.addEventListener("pointerup", endDrag);
 		el.addEventListener("pointercancel", endDrag);
+		el.addEventListener("pointerup", endTouch);
+		el.addEventListener("pointercancel", endTouch);
 	}
 
 

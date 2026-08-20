@@ -7,6 +7,10 @@ export interface RendererInterface {
 
 	render(target: HTMLElement, generator: GeneratorInterface2D): void;
 
+	getScale(): number;
+
+	setScale(scale: number): void;
+
 }
 
 export interface RenderOutput {

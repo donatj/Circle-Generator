@@ -14,6 +14,8 @@ interface SvgRendererState {
 }
 
 export class SvgRenderer implements RendererInterface, ControlAwareInterface {
+	private static readonly minScale = 100;
+	private static readonly maxScale = 2000;
 
 	private dWidth = 5;
 	private dBorder = 1;
@@ -26,7 +28,13 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	public readonly changeEmitter = new EventEmitter<SvgRendererState>();
 
-	constructor(private scaleSize: number) { }
+	private scaleControl: HTMLInputElement | null = null;
+
+	private scaleSize: number;
+
+	constructor(scaleSize: number) {
+		this.scaleSize = this.normalizeScale(scaleSize);
+	}
 
 	private triggerChange() {
 		this.changeEmitter.trigger({
@@ -37,11 +45,9 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	public getControls(): Control[] {
 
 		const scale = makeInputControl('Render', 'scale', 'range', this.scaleSize, (val) => {
-			this.scaleSize = parseInt(val, 10);
-			this.scale();
-
-			this.triggerChange();
-		}, { min: "100", max: "2000" });
+			this.setScale(parseInt(val, 10));
+		}, { min: SvgRenderer.minScale.toString(), max: SvgRenderer.maxScale.toString() });
+		this.scaleControl = scale.element;
 
 		return [
 			scale,
@@ -77,6 +83,35 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 			this.stacksOf64,
 			this.stacksOf16,
 		];
+	}
+
+	public getScale(): number {
+		return this.scaleSize;
+	}
+
+	public setScale(scale: number): void {
+		const normalizedScale = this.normalizeScale(scale);
+		if (normalizedScale === this.scaleSize) {
+			return;
+		}
+
+		this.scaleSize = normalizedScale;
+		if (this.scaleControl) {
+			this.scaleControl.value = this.scaleSize.toString();
+		}
+		if (this.lastSvg) {
+			this.scale();
+		}
+
+		this.triggerChange();
+	}
+
+	private normalizeScale(scale: number): number {
+		if (!isFinite(scale)) {
+			return 500;
+		}
+
+		return Math.max(SvgRenderer.minScale, Math.min(SvgRenderer.maxScale, Math.round(scale)));
 	}
 
 	private hasInlineSvg(): boolean {
