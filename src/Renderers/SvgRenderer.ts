@@ -9,7 +9,7 @@ import {
 } from "../Controller";
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Math";
-import { svgToCanvas } from "../Utils";
+import { svgToCanvas, triggerDownload } from "../Utils";
 
 function isSvgElement(el: Node): el is SVGElement {
 	return (el as SVGElement).namespaceURI === "http://www.w3.org/2000/svg";
@@ -64,12 +64,10 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 				const canvas = await svgToCanvas(this.lastSvg.outerHTML);
 				const dataUrl = canvas.toDataURL();
+				const filename =
+					(this.lastGenerator?.getDescription() || "circle") + "-download.png";
 
-				const a = document.createElement("a");
-				a.href = dataUrl;
-				a.download = (this.lastGenerator?.getDescription() || "circle") + "-download.png";
-				document.body.appendChild(a);
-				a.click();
+				triggerDownload(dataUrl, filename);
 			}),
 
 			makeButtonControl("Download", null, "SVG", async () => {
@@ -77,11 +75,11 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 					throw new Error("No SVG to download");
 				}
 
-				const a = document.createElement("a");
-				a.href = "data:image/svg+xml;base64," + btoa(this.lastSvg.outerHTML);
-				a.download = (this.lastGenerator?.getDescription() || "circle") + "-download.svg";
-				document.body.appendChild(a);
-				a.click();
+				const href = "data:image/svg+xml;base64," + btoa(this.lastSvg.outerHTML);
+				const filename =
+					(this.lastGenerator?.getDescription() || "circle") + "-download.svg";
+
+				triggerDownload(href, filename);
 			}),
 
 			this.blocks,
