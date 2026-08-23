@@ -21,13 +21,16 @@ export interface ControlAwareInterface {
 }
 
 export function isControlAwareInterface(o: any): o is ControlAwareInterface {
-	return o && (typeof o.getControls === "function");
+	return o && typeof o.getControls === "function";
 }
 
 export class InfoControl implements Control<HTMLOutputElement> {
 	public element: HTMLOutputElement = document.createElement("output");
 
-	constructor(public group: string, public label: string | null) { }
+	constructor(
+		public group: string,
+		public label: string | null,
+	) {}
 
 	public setValue(value: string) {
 		this.element.value = value;
@@ -38,7 +41,7 @@ export function makeButtonControl(
 	group: string,
 	label: string | null,
 	text: string,
-	onClick: (e: MouseEvent) => void
+	onClick: (e: MouseEvent) => void,
 ): Control<HTMLButtonElement> {
 	const button = document.createElement("button");
 	button.innerText = text;
@@ -58,7 +61,7 @@ export function makeInputControl(
 	type: string,
 	value: string | number,
 	onAlter: (val: string) => void,
-	attributes?: Partial<HTMLInputElement>
+	attributes?: Partial<HTMLInputElement>,
 ): Control<HTMLInputElement> {
 	const controlElm = document.createElement("input");
 
@@ -88,22 +91,24 @@ export function makeInputControl(
 }
 
 export class MainController {
-
 	private stateMananger = new StateHandler();
 
 	private generator: GeneratorInterface2D;
 
 	private renderer: RendererInterface;
 
-	constructor(private controls: HTMLElement, private result: HTMLElement) {
+	constructor(
+		private controls: HTMLElement,
+		private result: HTMLElement,
+	) {
 		const svgState = this.stateMananger.get("svgRenderer", {
 			scale: 500,
 		});
-		const svgRenderer = new SvgRenderer(svgState.get('scale'));
+		const svgRenderer = new SvgRenderer(svgState.get("scale"));
 		this.renderer = svgRenderer;
 
 		svgRenderer.changeEmitter.add((e) => {
-			svgState.set('scale', e.scale);
+			svgState.set("scale", e.scale);
 		});
 
 		const circleState = this.stateMananger.get("circle", {
@@ -113,46 +118,46 @@ export class MainController {
 			force: true,
 		});
 
-		const w = circleState.get('width');
-		const h = circleState.get('height');
+		const w = circleState.get("width");
+		const h = circleState.get("height");
 
-		const circle = new Circle(
-			w, h,
-			circleState.get('mode'),
-			circleState.get('force'),
-		);
+		const circle = new Circle(w, h, circleState.get("mode"), circleState.get("force"));
 		this.generator = circle;
-		this.generator.changeEmitter.add(() => { this.render(); });
-		this.renderer.changeEmitter.add(() => { this.render(); });
+		this.generator.changeEmitter.add(() => {
+			this.render();
+		});
+		this.renderer.changeEmitter.add(() => {
+			this.render();
+		});
 
 		circle.changeEmitter.add((e) => {
-			circleState.set('mode', e.state.mode);
-			circleState.set('width', e.state.width);
-			circleState.set('height', e.state.height);
-			circleState.set('force', e.state.force);
+			circleState.set("mode", e.state.mode);
+			circleState.set("width", e.state.width);
+			circleState.set("height", e.state.height);
+			circleState.set("force", e.state.force);
 		});
 
 		if (w * h > 200 * 200) {
 			// @todo make it's own class/control
-			const dlg = document.createElement('dialog');
+			const dlg = document.createElement("dialog");
 			dlg.innerText = `Do you want to re-render the saved ${w} x ${h} shape? This may take a while or freeze.`;
 
-			const frm = document.createElement('form');
-			frm.method = 'dialog';
+			const frm = document.createElement("form");
+			frm.method = "dialog";
 
-			const btnYes = document.createElement('button');
-			btnYes.value = 'yes';
-			btnYes.innerText = 'Yes';
+			const btnYes = document.createElement("button");
+			btnYes.value = "yes";
+			btnYes.innerText = "Yes";
 
-			const btnNo = document.createElement('button');
-			btnNo.innerText = 'No';
-			btnNo.value = 'no';
+			const btnNo = document.createElement("button");
+			btnNo.innerText = "No";
+			btnNo.value = "no";
 
 			frm.appendChild(btnYes);
 			frm.appendChild(btnNo);
-			frm.style.padding = '1em';
-			frm.style.display = 'flex';
-			frm.style.columnGap = '1em';
+			frm.style.padding = "1em";
+			frm.style.display = "flex";
+			frm.style.columnGap = "1em";
 
 			dlg.appendChild(frm);
 
@@ -161,8 +166,8 @@ export class MainController {
 					this.renderControls();
 					this.render();
 				} else {
-					circleState.set('width', 5);
-					circleState.set('height', 5);
+					circleState.set("width", 5);
+					circleState.set("height", 5);
 					window.location.reload();
 				}
 			});
@@ -187,7 +192,7 @@ export class MainController {
 		// el.style.touchAction = "none";
 
 		el.addEventListener("pointerdown", (e: PointerEvent) => {
-			const target = e.target as HTMLElement|SVGElement|null;
+			const target = e.target as HTMLElement | SVGElement | null;
 			if (target && target.classList.contains("filled")) {
 				return;
 			}
@@ -216,9 +221,8 @@ export class MainController {
 		el.addEventListener("pointercancel", endDrag);
 	}
 
-
 	private renderControls() {
-		this.controls.innerHTML = '';
+		this.controls.innerHTML = "";
 
 		const controlProviders = [this.generator, this.renderer];
 
@@ -247,7 +251,6 @@ export class MainController {
 			groupElm.appendChild(legend);
 
 			for (const c of controlGroups[group]) {
-
 				const labelElm = document.createElement("label");
 				groupElm.appendChild(labelElm);
 
@@ -265,5 +268,4 @@ export class MainController {
 	private render() {
 		this.renderer.render(this.result, this.generator);
 	}
-
 }

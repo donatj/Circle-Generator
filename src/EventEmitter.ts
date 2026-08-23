@@ -7,8 +7,7 @@ export class EventEmitter<T> {
 		this.listeners.add(callback);
 	}
 
-	public trigger( event: T ) {
+	public trigger(event: T) {
 		this.listeners.forEach((fn) => fn(event));
 	}
-
 }

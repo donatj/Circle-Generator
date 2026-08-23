@@ -21,4 +21,3 @@ export function svgToCanvas(svgData: string): Promise<HTMLCanvasElement> {
 
 	return p;
 }
-

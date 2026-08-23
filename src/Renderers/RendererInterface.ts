@@ -2,11 +2,9 @@ import { EventEmitter } from "../EventEmitter";
 import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
 
 export interface RendererInterface {
-
-	readonly changeEmitter : EventEmitter<any>;
+	readonly changeEmitter: EventEmitter<any>;
 
 	render(target: HTMLElement, generator: GeneratorInterface2D): void;
-
 }
 
 export interface RenderOutput {
@@ -15,7 +13,7 @@ export interface RenderOutput {
 }
 
 export type Download = {
-	type: string,
-	extension: string,
-	getBlob: () => string,
+	type: string;
+	extension: string;
+	getBlob: () => string;
 };

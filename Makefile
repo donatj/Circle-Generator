@@ -8,6 +8,16 @@ dist: build
 clean:
 	rm -rf dist
 
-.PHONY: lint
+.PHONY: lint lint-fix
 lint:
-	npx tslint -c tslint.json 'src/**/*.ts' --fix
+	npx oxlint src
+
+lint-fix:
+	npx oxlint --fix src
+
+.PHONY: format format-check
+format:
+	npx oxfmt .github .oxfmtrc.json index.html package.json src style.scss tsconfig.json vite.config.mjs
+
+format-check:
+	npx oxfmt --check .github .oxfmtrc.json index.html package.json src style.scss tsconfig.json vite.config.mjs

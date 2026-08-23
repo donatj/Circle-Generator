@@ -1,6 +1,12 @@
 import { GeneratorInterface2D } from "../Generators/GeneratorInterface2D";
 import { RendererInterface } from "./RendererInterface";
-import { Control, ControlAwareInterface, InfoControl, makeButtonControl, makeInputControl } from "../Controller";
+import {
+	Control,
+	ControlAwareInterface,
+	InfoControl,
+	makeButtonControl,
+	makeInputControl,
+} from "../Controller";
 import { EventEmitter } from "../EventEmitter";
 import { xor } from "../Math";
 import { svgToCanvas } from "../Utils";
@@ -14,7 +20,6 @@ interface SvgRendererState {
 }
 
 export class SvgRenderer implements RendererInterface, ControlAwareInterface {
-
 	private dWidth = 5;
 	private dBorder = 1;
 	private dFull = this.dWidth + this.dBorder;
@@ -26,7 +31,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 
 	public readonly changeEmitter = new EventEmitter<SvgRendererState>();
 
-	constructor(private scaleSize: number) { }
+	constructor(private scaleSize: number) {}
 
 	private triggerChange() {
 		this.changeEmitter.trigger({
@@ -35,38 +40,44 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	}
 
 	public getControls(): Control[] {
+		const scale = makeInputControl(
+			"Render",
+			"scale",
+			"range",
+			this.scaleSize,
+			(val) => {
+				this.scaleSize = parseInt(val, 10);
+				this.scale();
 
-		const scale = makeInputControl('Render', 'scale', 'range', this.scaleSize, (val) => {
-			this.scaleSize = parseInt(val, 10);
-			this.scale();
-
-			this.triggerChange();
-		}, { min: "100", max: "2000" });
+				this.triggerChange();
+			},
+			{ min: "100", max: "2000" },
+		);
 
 		return [
 			scale,
 
-			makeButtonControl('Download', null, 'PNG', async () => {
+			makeButtonControl("Download", null, "PNG", async () => {
 				if (!this.lastSvg) {
-					throw new Error('No SVG to download');
+					throw new Error("No SVG to download");
 				}
 
 				const canvas = await svgToCanvas(this.lastSvg.outerHTML);
 				const dataUrl = canvas.toDataURL();
 
-				const a = document.createElement('a');
+				const a = document.createElement("a");
 				a.href = dataUrl;
 				a.download = (this.lastGenerator?.getDescription() || "circle") + "-download.png";
 				document.body.appendChild(a);
 				a.click();
 			}),
 
-			makeButtonControl('Download', null, 'SVG', async () => {
+			makeButtonControl("Download", null, "SVG", async () => {
 				if (!this.lastSvg) {
-					throw new Error('No SVG to download');
+					throw new Error("No SVG to download");
 				}
 
-				const a = document.createElement('a');
+				const a = document.createElement("a");
 				a.href = "data:image/svg+xml;base64," + btoa(this.lastSvg.outerHTML);
 				a.download = (this.lastGenerator?.getDescription() || "circle") + "-download.svg";
 				document.body.appendChild(a);
@@ -80,50 +91,52 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 	}
 
 	private hasInlineSvg(): boolean {
-		const div = document.createElement('div');
-		div.innerHTML = '<svg/>';
+		const div = document.createElement("div");
+		div.innerHTML = "<svg/>";
 		return Boolean(div.firstChild && isSvgElement(div.firstChild));
 	}
 
 	private add(x: number, y: number, width: number, height: number, filled: boolean): string {
-		const xp = (((x + 1) * this.dFull) /*+ (this._svg_width / 2)*/ - (this.dFull / 2)) + .5;
-		const yp = (((y + 1) * this.dFull) /*+ (this._svg_height / 2)*/ - (this.dFull / 2)) + .5;
+		const xp = (x + 1) * this.dFull /*+ (this._svg_width / 2)*/ - this.dFull / 2 + 0.5;
+		const yp = (y + 1) * this.dFull /*+ (this._svg_height / 2)*/ - this.dFull / 2 + 0.5;
 
 		let color: string | null = null;
 
-		const midx = (width / 2) - .5;
-		const midy = (height / 2) - .5;
+		const midx = width / 2 - 0.5;
+		const midy = height / 2 - 0.5;
 
 		let extra = "";
 		if (filled) {
 			if (x == midx || y == midy) {
-				color = '#880000';
+				color = "#880000";
 			} else {
-				color = '#FF0000';
+				color = "#FF0000";
 			}
 
 			extra = `onclick="this.classList.toggle('built');"`;
 		} else if (x == midx || y == midy) {
 			if (xor(!!(x & 1), !!(y & 1))) {
-				color = '#AAAAAA';
+				color = "#AAAAAA";
 			} else {
-				color = '#CCCCCC';
+				color = "#CCCCCC";
 			}
 		}
 
 		if (color) {
-			const fillstr = (filled ? 'filled' : '');
+			const fillstr = filled ? "filled" : "";
 			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${fillstr}" data-x="${x}" data-y="${y}" ${extra}/>`;
 		}
 
-		return '';
+		return "";
 	}
 
 	private lastSvg: SVGElement | null = null;
 
 	public render(target: HTMLElement, generator: GeneratorInterface2D): void {
 		if (!this.hasInlineSvg()) {
-			throw new Error(`SVG Renderer: No support for inline SVG. Please use a browser that supports SVG.`);
+			throw new Error(
+				`SVG Renderer: No support for inline SVG. Please use a browser that supports SVG.`,
+			);
 		}
 
 		const svg = this.generateSVG(generator);
@@ -131,7 +144,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		target.innerHTML = svg;
 		// const svgElm = target.firstChild as SVGElement;
 
-		this.lastSvg = target.querySelector('svg');
+		this.lastSvg = target.querySelector("svg");
 
 		this.scale();
 	}
@@ -201,13 +214,13 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		length: number,
 		offset: number,
 		center: number,
-		vertical: boolean
+		vertical: boolean,
 	): string {
-		let svg = '';
+		let svg = "";
 		for (let i = 0; i <= count; i++) {
 			const atCenter = i === center;
-			const fill = atCenter ? '#880000' : '#bbbbbb';
-			const opacity = atCenter ? '1' : '.3';
+			const fill = atCenter ? "#880000" : "#bbbbbb";
+			const opacity = atCenter ? "1" : ".3";
 			if (vertical) {
 				svg += `<rect x="${i * this.dFull + offset}" y="0" fill="${fill}"
 						 width="${this.dBorder}" height="${length}" opacity="${opacity}" />`;
@@ -219,13 +232,12 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		return svg;
 	}
 
-
 	private scale() {
 		if (!this.lastSvg) {
 			throw new Error("Error finding svg_circle");
 		}
-		const h = this.lastSvg.getAttribute('data-h');
-		const w = this.lastSvg.getAttribute('data-w');
+		const h = this.lastSvg.getAttribute("data-h");
+		const w = this.lastSvg.getAttribute("data-w");
 		if (!h || !w) {
 			throw new Error("error getting requisite data attributes");
 		}
@@ -236,14 +248,14 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		const aspect = hn / wn;
 
 		let scale = this.scaleSize;
-		scale = scale * (wn * .01);
+		scale = scale * (wn * 0.01);
 
 		const scaleX = scale;
 		const scaleY = scale * aspect;
 
-		this.lastSvg.setAttribute('width', scaleX + 'px');
-		this.lastSvg.setAttribute('height', scaleY + 'px');
-		this.lastSvg.style.width = scaleX + 'px';
-		this.lastSvg.style.height = scaleY + 'px';
+		this.lastSvg.setAttribute("width", scaleX + "px");
+		this.lastSvg.setAttribute("height", scaleY + "px");
+		this.lastSvg.style.width = scaleX + "px";
+		this.lastSvg.style.height = scaleY + "px";
 	}
 }
