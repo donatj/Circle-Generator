@@ -41,16 +41,16 @@ body {
 	flex-wrap: wrap;
 	gap: 0.5rem;
 	padding: 0.5rem;
-	border-bottom: 1px solid #626136;
-	background: #a1b360;
+	border-bottom: 1px solid #d0d7de;
+	background: #f6f8fa;
 
 	> fieldset {
 		min-inline-size: 0;
 		margin: 0;
 		padding: 0.5rem 0.65rem 0.65rem;
-		border: 1px solid #626136;
+		border: 1px solid #d0d7de;
 		border-radius: 0.5rem;
-		background: #e6d9c9;
+		background: #fff;
 
 		display: flex;
 		flex-direction: column;
@@ -61,7 +61,7 @@ body {
 
 		legend {
 			padding: 0 0.35rem;
-			color: #005163;
+			color: #57606a;
 			font-size: 0.85em;
 			font-weight: 600;
 			letter-spacing: 0.04em;
@@ -71,10 +71,8 @@ body {
 		input[type="number"],
 		input[type="checkbox"],
 		select {
-			border: 1px solid #626136;
+			border: 1px solid #8c959f;
 			border-radius: 0.25rem;
-			background: #fffdfa;
-			color: #221111;
 			font: inherit;
 			padding: 0.25rem 0.4rem;
 		}
@@ -90,7 +88,7 @@ body {
 			height: 1.1rem;
 			margin: 0 0 0 auto;
 			padding: 0;
-			accent-color: #0092b4;
+			accent-color: #0969da;
 		}
 
 		label {
@@ -114,29 +112,29 @@ body {
 		button {
 			width: 100%;
 			padding: 0.3rem 0.55rem;
-			border: 1px solid #003e4c;
+			border: 1px solid #1f6feb;
 			border-radius: 0.25rem;
-			background: #005163;
+			background: #0969da;
 			color: #fff;
 			font: inherit;
 			font-weight: 600;
 			cursor: pointer;
 
 			&:hover {
-				background: #003e4c;
+				background: #0550ae;
 			}
 		}
 
 		output {
 			margin-left: auto;
-			color: #221111;
+			color: #57606a;
 			font-variant-numeric: tabular-nums;
 		}
 
 		input:focus-visible,
 		select:focus-visible,
 		button:focus-visible {
-			outline: 2px solid #0092b4;
+			outline: 2px solid #0969da;
 			outline-offset: 2px;
 		}
 	}
