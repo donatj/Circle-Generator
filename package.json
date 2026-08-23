@@ -17,7 +17,7 @@
     "oxfmt": "^0.64.0",
     "oxlint": "^1.79.0",
     "sass": "^1.103.0",
-    "typescript": "^5.8.3",
+    "typescript": "^7.0.2",
     "vite": "^8.2.1",
     "vite-plugin-singlefile": "^2.3.3"
   },
