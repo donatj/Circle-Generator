@@ -13,11 +13,7 @@
     "lint:fix": "make lint-fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "robust-point-in-polygon": "^1.0.3"
-  },
   "devDependencies": {
-    "@types/robust-point-in-polygon": "^1.0.0",
     "oxfmt": "^0.64.0",
     "oxlint": "^1.79.0",
     "sass": "^1.103.0",
