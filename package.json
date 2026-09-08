@@ -14,7 +14,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
-    "oxfmt": "^0.64.0",
+    "oxfmt": "^0.65.0",
     "oxlint": "^1.79.0",
     "sass": "^1.103.0",
     "typescript": "^7.0.2",
