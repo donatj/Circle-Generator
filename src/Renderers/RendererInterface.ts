@@ -5,6 +5,10 @@ export interface RendererInterface {
 	readonly changeEmitter: EventEmitter<any>;
 
 	render(target: HTMLElement, generator: GeneratorInterface2D): void;
+
+	getScale(): number;
+
+	setScale(scale: number): void;
 }
 
 export interface RenderOutput {
