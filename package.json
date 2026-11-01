@@ -19,7 +19,7 @@
     "sass": "^1.105.0",
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
-    "vite-plugin-singlefile": "^2.3.3"
+    "vite-plugin-singlefile": "^2.3.4"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
