@@ -123,7 +123,7 @@ export class SvgRenderer implements RendererInterface, ControlAwareInterface {
 		if (color) {
 			const fillstr = filled ? "filled" : "";
 			return `<rect x="${xp}" y="${yp}" fill="${color}" width="${this.dWidth}" height="${this.dWidth}" class="${fillstr}" data-x="${x}" data-y="${y}" ${extra}> <title>${x - Math.floor(width / 2)}, ${y - Math.floor(height / 2)}</title> </rect>`;
-}
+		}
 
 		return "";
 	}
